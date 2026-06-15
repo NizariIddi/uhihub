@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Academic Browser — UniHub Tanzania</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <style>
+    .ab-wrap{display:flex;gap:0;min-height:calc(100vh - 9rem)}
+    .ab-left{width:300px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;max-height:calc(100vh - 9rem);overflow:hidden}
+    .ab-tree-hdr{padding:1.25rem 1rem .75rem;border-bottom:1px solid var(--border);flex-shrink:0}
+    .ab-breadcrumb{display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;margin-bottom:.75rem;min-height:1.2rem}
+    .bc-item{font-size:.72rem;color:var(--ink-muted);cursor:pointer;border-radius:4px;padding:.1rem .3rem;transition:all .12s}
+    .bc-item:hover{color:var(--gold);background:var(--gold-pale)}
+    .bc-item.bc-active{color:var(--ink);font-weight:500;cursor:default}
+    .bc-item.bc-active:hover{background:transparent}
+    .bc-sep{font-size:.65rem;color:var(--border);user-select:none}
+    .ab-search{width:100%;border:1px solid var(--border);border-radius:8px;padding:.5rem .75rem;font-size:.82rem;outline:none;font-family:inherit;background:var(--card-bg);color:var(--ink)}
+    .ab-search:focus{border-color:var(--gold)}
+    .ab-tree{flex:1;overflow-y:auto;padding:.5rem 0}
+    .tree-item{display:flex;align-items:center;gap:.6rem;padding:.5rem 1rem;cursor:pointer;transition:background .12s;border-bottom:1px solid rgba(201,150,12,.04)}
+    .tree-item:hover{background:var(--gold-pale)}
+    .tree-item.active{background:var(--gold-pale)}
+    .tree-icon{font-size:1.1rem;flex-shrink:0;width:24px;text-align:center}
+    .tree-label{flex:1;min-width:0}
+    .tree-name{font-size:.85rem;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .tree-meta{font-size:.71rem;color:var(--ink-muted);margin-top:.05rem}
+    .tree-badge{font-size:.65rem;background:var(--gold-pale);color:var(--gold);padding:.1rem .4rem;border-radius:10px;flex-shrink:0;font-weight:600}
+    .tree-arrow{color:var(--ink-muted);font-size:.7rem;flex-shrink:0;transition:transform .2s}
+    .tree-item.active .tree-arrow{transform:rotate(90deg);color:var(--gold)}
+    .tree-empty{padding:2rem 1rem;text-align:center;color:var(--ink-muted);font-size:.82rem}
+    .tree-loading{padding:1.5rem 1rem;text-align:center}
+    .year-tabs{display:flex;gap:.35rem;padding:.6rem 1rem;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+    .ytab{padding:.3rem .75rem;border-radius:20px;font-size:.75rem;font-weight:500;cursor:pointer;border:1px solid var(--border);color:var(--ink-muted);background:transparent;font-family:inherit;transition:all .15s}
+    .ytab:hover{border-color:var(--gold);color:var(--ink)}
+    .ytab.active{background:var(--ink);color:var(--gold-light);border-color:var(--ink)}
+    [data-theme="dark"] .ytab.active{background:var(--gold);color:#111008;border-color:var(--gold)}
+    .ab-right{flex:1;min-width:0;padding:2rem 2.5rem;overflow-y:auto}
+    .ab-welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;text-align:center;color:var(--ink-muted);gap:1rem}
+    .ab-welcome-icon{font-size:4rem;opacity:.4}
+    .ab-welcome h2{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--ink);margin:0}
+    .ab-welcome p{max-width:380px;font-size:.875rem;line-height:1.65}
+    .prog-hdr{display:flex;align-items:flex-start;gap:1rem;margin-bottom:2rem;padding:1.5rem;background:var(--card-bg);border:1px solid var(--border);border-radius:12px}
+    .prog-badge{width:56px;height:56px;border-radius:12px;background:var(--gold-pale);display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0}
+    .prog-info h2{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:.2rem}
+    .prog-info .prog-path{font-size:.78rem;color:var(--ink-muted)}
+    .prog-pills{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem}
+    .prog-pill{font-size:.7rem;padding:.18rem .6rem;border-radius:20px;background:var(--gold-pale);color:var(--gold);font-weight:500}
+    .sem-section{margin-bottom:2rem}
+    .sem-hdr{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+    .mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+    .mod-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:1.25rem;cursor:pointer;transition:all .18s;position:relative;overflow:hidden}
+    .mod-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold);opacity:0;transition:opacity .18s}
+    .mod-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 20px rgba(201,150,12,.12)}
+    .mod-card:hover::before,.mod-card.selected::before{opacity:1}
+    .mod-card.selected{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,150,12,.15)}
+    .mod-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.6rem}
+    .mod-code{font-size:.68rem;font-weight:700;background:var(--gold-pale);color:var(--gold);padding:.18rem .55rem;border-radius:20px}
+    .mod-core{font-size:.65rem;background:var(--badge-neutral-bg);color:var(--badge-neutral-fg);padding:.18rem .5rem;border-radius:20px}
+    .mod-core.is-core{background:var(--badge-green-bg);color:var(--badge-green-fg)}
+    .mod-name{font-size:.95rem;font-weight:600;line-height:1.35;margin-bottom:.25rem;color:var(--ink)}
+    .mod-credits{font-size:.72rem;color:var(--ink-muted);margin-bottom:.75rem}
+    .mod-stats{display:flex;gap:.75rem;padding-top:.75rem;border-top:1px solid var(--border)}
+    .mod-stat{font-size:.71rem;color:var(--ink-muted);display:flex;align-items:center;gap:.25rem}
+    .mod-detail{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;margin-top:1.5rem;overflow:hidden}
+    .mod-detail-hdr{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .mod-detail-hdr h3{font-family:'Playfair Display',serif;font-size:1.1rem;margin:0}
+    .mod-detail-close{background:none;border:none;cursor:pointer;color:var(--ink-muted);font-size:1.2rem;border-radius:6px;padding:.2rem .45rem;font-family:inherit}
+    .mod-detail-close:hover{background:var(--gold-pale);color:var(--ink)}
+    .mod-detail-body{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+    .mod-detail-col{padding:1.25rem 1.5rem;border-right:1px solid var(--border)}
+    .mod-detail-col:last-child{border-right:none}
+    .mdc-title{font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:.75rem}
+    .topic-list{list-style:none;display:flex;flex-direction:column;gap:.3rem}
+    .topic-item{display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-radius:6px;font-size:.82rem;color:var(--ink)}
+    .topic-item:hover{background:var(--gold-pale)}
+    .topic-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0}
+    .res-list{display:flex;flex-direction:column;gap:.5rem}
+    .res-item{display:flex;align-items:center;gap:.75rem;padding:.6rem .75rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;transition:all .15s}
+    .res-item:hover{border-color:var(--gold);background:var(--gold-pale)}
+    .res-icon{font-size:1rem;flex-shrink:0}
+    .res-info{flex:1;min-width:0}
+    .res-name{font-size:.8rem;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .res-meta{font-size:.7rem;color:var(--ink-muted)}
+    .res-btn{font-size:.72rem;padding:.25rem .6rem;border-radius:6px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--ink-muted);font-family:inherit;white-space:nowrap;transition:all .12s}
+    .res-btn:hover{border-color:var(--gold);color:var(--ink);background:var(--gold-pale)}
+    .res-empty{text-align:center;padding:1.5rem;color:var(--ink-muted);font-size:.82rem}
+    @media(max-width:768px){
+      .ab-wrap{flex-direction:column}
+      .ab-left{width:100%;max-height:280px;position:static;border-right:none;border-bottom:1px solid var(--border)}
+      .ab-right{padding:1.25rem}
+      .mod-detail-body{grid-template-columns:1fr}
+      .mod-detail-col{border-right:none;border-bottom:1px solid var(--border)}
+    }
+    [data-theme="dark"] .tree-item:hover,[data-theme="dark"] .tree-item.active{background:#2a2310}
+    [data-theme="dark"] .mod-card:hover,[data-theme="dark"] .mod-card.selected{box-shadow:0 6px 20px rgba(0,0,0,.3)}
+    [data-theme="dark"] .res-item{background:#1C1A12}
+    [data-theme="dark"] .res-item:hover{background:#2a2310}
+  </style>
+</head>
+<body>
+<div id="topbarMount"></div>
+<div class="layout">
+  <div id="sidebarMount"></div>
+  <main class="main" style="padding:0;overflow:hidden">
+    <div style="padding:1.5rem 2rem 1rem;border-bottom:1px solid var(--border)">
+      <div class="label">Navigate</div>
+      <h1 class="page-title" style="font-size:1.5rem">Academic Browser</h1>
+      <p style="color:var(--ink-muted);font-size:.82rem;margin-top:.2rem">University → College → Programme → Year → Module → Topics & Resources</p>
+    </div>
+    <div class="ab-wrap">
+      <div class="ab-left">
+        <div class="ab-tree-hdr">
+          <div class="ab-breadcrumb" id="breadcrumb"><span class="bc-item bc-active">Universities</span></div>
+          <input class="ab-search" type="text" id="treeSearch" placeholder="Search..." oninput="filterTree(this.value)"/>
+        </div>
+        <div class="year-tabs" id="yearTabs" style="display:none"></div>
+        <div class="ab-tree" id="abTree"><div class="tree-loading"><div class="spinner" style="margin:0 auto"></div></div></div>
+      </div>
+      <div class="ab-right" id="abRight">
+        <div class="ab-welcome"><div class="ab-welcome-icon">🎓</div><h2>Start exploring</h2><p>Select a university from the left panel, then drill down to your college, programme, year, and modules — with past exams and notes for each.</p></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/js/utils.js"></script>
+<script>
+const UNI_NAMES={udsm:'UDSM',udom:'UDOM',ardhi:'Ardhi University',muhas:'MUHAS',out:'OUT',sua:'SUA',mzumbe:'Mzumbe University',ifm:'IFM',cbe:'CBE',jordan:'Jordan University',saut:'St. Augustine (SAUT)',other:'Other'}
+const UNIS_LIST=[
+  {key:'udsm',name:'University of Dar es Salaam',icon:'🏛️',short:'UDSM'},
+  {key:'udom',name:'University of Dodoma',icon:'🎓',short:'UDOM'},
+  {key:'ardhi',name:'Ardhi University',icon:'🏗️',short:'Ardhi'},
+  {key:'muhas',name:'Muhimbili University (MUHAS)',icon:'🏥',short:'MUHAS'},
+  {key:'out',name:'Open University of Tanzania',icon:'📡',short:'OUT'},
+  {key:'sua',name:'Sokoine University (SUA)',icon:'🌾',short:'SUA'},
+  {key:'mzumbe',name:'Mzumbe University',icon:'💼',short:'Mzumbe'},
+  {key:'ifm',name:'Institute of Finance Management',icon:'📊',short:'IFM'},
+  {key:'cbe',name:'College of Business Education',icon:'🏢',short:'CBE'},
+  {key:'saut',name:'St. Augustine University',icon:'✝️',short:'SAUT'},
+]
+const LEVEL_ICONS={certificate:'📜',diploma:'📋',bachelor:'🎓',masters:'🎓',phd:'🔬'}
+const SUF=['','st','nd','rd','th']
+
+const S={level:'universities',university:null,college:null,programme:null,year:1,maxYear:4,selectedModule:null,data:[],allData:[]}
+
+document.addEventListener('DOMContentLoaded',()=>{requireAuth();renderLayout('academics');initSidebar();showUniversities()})
+
+function setBreadcrumb(crumbs){
+  document.getElementById('breadcrumb').innerHTML=crumbs.map((c,i)=>{
+    const last=i===crumbs.length-1
+    const el=`<span class="bc-item ${last?'bc-active':''}" ${!last?`onclick="${c.fn}"`:''} style="cursor:${last?'default':'pointer'}">${esc(c.label)}</span>`
+    return i<crumbs.length-1?el+'<span class="bc-sep">›</span>':el
+  }).join('')
+}
+function renderTree(items,makeHtml){
+  const el=document.getElementById('abTree')
+  if(!items.length){el.innerHTML='<div class="tree-empty">Nothing found.</div>';return}
+  el.innerHTML=items.map(makeHtml).join('')
+}
+function filterTree(q){
+  q=q.toLowerCase()
+  if(!q){renderLevel();return}
+  S.data=S.allData.filter(item=>{
+    const n=(item.name||item.key||'').toLowerCase()
+    const c=(item.code||item.short||'').toLowerCase()
+    return n.includes(q)||c.includes(q)
+  })
+  renderLevel(false)
+}
+function renderLevel(reset=true){
+  if(reset){const s=document.getElementById('treeSearch');if(s)s.value=''}
+  if(S.level==='universities')renderUniversityItems()
+  else if(S.level==='colleges')renderCollegeItems()
+  else if(S.level==='programmes')renderProgrammeItems()
+  else if(S.level==='modules')renderModuleItems()
+}
+
+// ── Universities ──
+function showUniversities(){
+  S.level='universities';S.university=null;S.college=null;S.programme=null;S.selectedModule=null
+  document.getElementById('yearTabs').style.display='none'
+  setBreadcrumb([{label:'Universities',fn:'showUniversities()'}])
+  S.allData=S.data=[...UNIS_LIST]
+  renderUniversityItems()
+  document.getElementById('abRight').innerHTML='<div class="ab-welcome"><div class="ab-welcome-icon">🎓</div><h2>Start exploring</h2><p>Select a university from the left panel, then drill down to your college, programme, year, and modules — with past exams and notes for each.</p></div>'
+}
+function renderUniversityItems(){
+  renderTree(S.data,u=>`<div class="tree-item ${S.university===u.key?'active':''}" onclick="selectUniversity('${u.key}','${u.name.replace(/'/g,"\\'")}','${u.icon}')"><span class="tree-icon">${u.icon}</span><div class="tree-label"><div class="tree-name">${esc(u.name)}</div><div class="tree-meta">${u.short}</div></div><span class="tree-arrow">›</span></div>`)
+}
+async function selectUniversity(key,name,icon){
+  S.university=key;S.college=null;S.programme=null;S.selectedModule=null
+  setBreadcrumb([{label:'Universities',fn:'showUniversities()'},{label:name}])
+  showLoadingRight()
+  try{
+    const d=await api.get('/api/hierarchy/colleges?university='+key)
+    S.level='colleges';S.allData=S.data=d.colleges||[]
+    renderCollegeItems()
+    const cols=S.data
+    document.getElementById('abRight').innerHTML=`
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem">
+        <div style="width:56px;height:56px;background:var(--gold-pale);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:2rem">${icon}</div>
+        <div><h2 style="font-family:'Playfair Display',serif;font-size:1.4rem;margin:0">${esc(name)}</h2><p style="color:var(--ink-muted);font-size:.82rem;margin:.2rem 0 0">${cols.length} college${cols.length!==1?'s':''} · Select one to explore</p></div>
+      </div>
+      <div style="font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:1rem">Colleges & Faculties</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.75rem">
+        ${cols.map(c=>`<div onclick="selectCollege('${c.id}')" style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:1.25rem;cursor:pointer;transition:all .18s" onmouseover="this.style.borderColor='var(--gold)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform=''"><div style="font-size:1.5rem;margin-bottom:.6rem">${c.icon||'🏫'}</div><div style="font-size:.9rem;font-weight:600;margin-bottom:.2rem">${esc(c.name)}</div><div style="font-size:.75rem;color:var(--ink-muted)">${c.shortName||''}</div></div>`).join('')}
+      </div>`
+  }catch(e){showError(e.message)}
+}
+
+// ── Colleges ──
+let _collegeCache={}
+function renderCollegeItems(){
+  renderTree(S.data,c=>`<div class="tree-item ${S.college?.id===c.id?'active':''}" onclick="selectCollege('${c.id}')"><span class="tree-icon">${c.icon||'🏫'}</span><div class="tree-label"><div class="tree-name">${esc(c.name)}</div><div class="tree-meta">${c.shortName||''}</div></div><span class="tree-arrow">›</span></div>`)
+}
+async function selectCollege(colId){
+  const col=S.allData.find(c=>c.id===colId)||_collegeCache[colId]
+  if(!col)return
+  _collegeCache[colId]=col
+  S.college=col;S.programme=null;S.selectedModule=null
+  setBreadcrumb([
+    {label:'Universities',fn:'showUniversities()'},
+    {label:UNI_NAMES[S.university]||S.university,fn:`selectUniversity('${S.university}','${(UNI_NAMES[S.university]||S.university).replace(/'/g,"\\'")}','🏛️')`},
+    {label:col.shortName||col.name}
+  ])
+  showLoadingRight()
+  try{
+    const d=await api.get('/api/hierarchy/programmes?collegeId='+colId)
+    S.level='programmes';S.allData=S.data=d.programmes||[]
+    renderProgrammeItems()
+    const progs=S.data
+    document.getElementById('abRight').innerHTML=`
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;padding:1.5rem;background:var(--card-bg);border:1px solid var(--border);border-radius:12px">
+        <div style="width:56px;height:56px;background:var(--gold-pale);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:2rem">${col.icon||'🏫'}</div>
+        <div><h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin:0">${esc(col.name)}</h2><p style="color:var(--ink-muted);font-size:.78rem;margin:.2rem 0 0">${progs.length} programme${progs.length!==1?'s':''} — click one to browse modules</p></div>
+      </div>
+      <div style="font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:1rem">Programmes</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem">
+        ${progs.map(p=>`<div onclick="selectProgramme('${p.id}')" style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:1.25rem;cursor:pointer;transition:all .18s" onmouseover="this.style.borderColor='var(--gold)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform=''"><div style="font-size:1.4rem;margin-bottom:.6rem">${LEVEL_ICONS[p.degreeLevel]||'📚'}</div><div style="font-size:.9rem;font-weight:600;margin-bottom:.25rem">${esc(p.name)}</div><div style="display:flex;gap:.4rem;flex-wrap:wrap"><span style="font-size:.68rem;background:var(--gold-pale);color:var(--gold);padding:.15rem .5rem;border-radius:20px;font-weight:600">${p.code||p.degreeLevel}</span><span style="font-size:.68rem;background:var(--badge-neutral-bg);color:var(--badge-neutral-fg);padding:.15rem .5rem;border-radius:20px">${p.duration||3} years</span></div></div>`).join('')}
+      </div>`
+  }catch(e){showError(e.message)}
+}
+
+// ── Programmes ──
+let _progCache={}
+function renderProgrammeItems(){
+  renderTree(S.data,p=>`<div class="tree-item ${S.programme?.id===p.id?'active':''}" onclick="selectProgramme('${p.id}')"><span class="tree-icon">${LEVEL_ICONS[p.degreeLevel]||'📚'}</span><div class="tree-label"><div class="tree-name">${esc(p.name)}</div><div class="tree-meta">${p.code||''} · ${p.duration||3}y</div></div><span class="tree-arrow">›</span></div>`)
+}
+async function selectProgramme(progId){
+  const prog=S.allData.find(p=>p.id===progId)||_progCache[progId]
+  if(!prog)return
+  _progCache[progId]=prog
+  S.programme=prog;S.year=1;S.maxYear=prog.duration||4;S.selectedModule=null
+  setBreadcrumb([
+    {label:'Universities',fn:'showUniversities()'},
+    {label:UNI_NAMES[S.university]||S.university,fn:`selectUniversity('${S.university}','${(UNI_NAMES[S.university]||S.university).replace(/'/g,"\\'")}','🏛️')`},
+    {label:S.college?.shortName||S.college?.name||'College',fn:`selectCollege('${S.college?.id}')`},
+    {label:prog.code||prog.name}
+  ])
+  buildYearTabs()
+  await loadModulesForYear()
+}
+function buildYearTabs(){
+  const tabs=document.getElementById('yearTabs')
+  tabs.style.display='flex'
+  tabs.innerHTML=Array.from({length:S.maxYear},(_,i)=>i+1).map(y=>`<button class="ytab ${y===S.year?'active':''}" onclick="selectYear(${y})">${y}${SUF[y]||'th'} Year</button>`).join('')
+}
+function selectYear(y){
+  S.year=y;S.selectedModule=null
+  document.querySelectorAll('.ytab').forEach((b,i)=>b.classList.toggle('active',i+1===y))
+  loadModulesForYear()
+}
+async function loadModulesForYear(){
+  S.level='modules';showLoadingTree()
+  try{
+    const d=await api.get(`/api/hierarchy/modules?programmeId=${S.programme.id}&yearOfStudy=${S.year}`)
+    S.allData=S.data=d.modules||[]
+    renderModuleItems()
+    renderProgrammeRight()
+  }catch(e){showError(e.message)}
+}
+function renderModuleItems(){
+  renderTree(S.data,m=>`<div class="tree-item ${S.selectedModule?.id===m.id?'active':''}" onclick="selectModuleFromTree('${m.id}')"><span class="tree-icon">📘</span><div class="tree-label"><div class="tree-name">${esc(m.name)}</div><div class="tree-meta">${m.code} · ${m.credits||0} cr</div></div>${m.isCore?'<span class="tree-badge">Core</span>':''}</div>`)
+}
+function selectModuleFromTree(mId){
+  const m=S.allData.find(x=>x.id===mId);if(!m)return
+  S.selectedModule=m;renderModuleItems()
+  const card=document.getElementById('mc-'+mId)
+  if(card){card.scrollIntoView({behavior:'smooth',block:'center'});card.classList.add('selected')}
+  openModule(mId)
+}
+
+// ── Programme right panel ──
+function renderProgrammeRight(){
+  const prog=S.programme,mods=S.data
+  const bySem={}
+  const SEM_LABEL_A={'1':'Semester 1 — First Half','2':'Semester 2 — Second Half','full-year':'Full Year (Both Semesters)'}
+  mods.forEach(m=>{const k=SEM_LABEL_A[m.semester]||m.semester;(bySem[k]=bySem[k]||[]).push(m)})
+  document.getElementById('abRight').innerHTML=`
+    <div class="prog-hdr">
+      <div class="prog-badge">📚</div>
+      <div class="prog-info">
+        <h2>${esc(prog.name)}</h2>
+        <div class="prog-path">${esc(S.college?.name||'')} · ${esc(UNI_NAMES[S.university]||S.university||'')}</div>
+        <div class="prog-pills">
+          <span class="prog-pill">Year ${S.year}${SUF[S.year]||'th'}</span>
+          <span class="prog-pill">${mods.length} module${mods.length!==1?'s':''}</span>
+          <span class="prog-pill">${mods.reduce((s,m)=>s+(m.credits||0),0)} credits</span>
+        </div>
+      </div>
+    </div>
+    ${!mods.length?'<div class="ab-welcome" style="min-height:200px"><p>No modules found for this year.</p></div>':
+      Object.entries(bySem).sort().map(([sem,semMods])=>`
+        <div class="sem-section">
+          <div class="sem-hdr">${sem}</div>
+          <div class="mod-grid">
+            ${semMods.map(m=>`
+              <div class="mod-card" id="mc-${m.id}" onclick="openModule('${m.id}')">
+                <div class="mod-card-top">
+                  <span class="mod-code">${esc(m.code)}</span>
+                  <span class="mod-core ${m.isCore?'is-core':''}">${m.isCore?'Core':'Elective'}</span>
+                </div>
+                <div class="mod-name">${esc(m.name)}</div>
+                <div class="mod-credits">${m.credits||0} credits${m.topics?.length?' · '+m.topics.length+' topics':''}</div>
+                <div class="mod-stats">
+                  <span class="mod-stat">📄 <span id="ec-${m.id}">—</span> exams</span>
+                  <span class="mod-stat">📝 <span id="nc-${m.id}">—</span> notes</span>
+                </div>
+              </div>`).join('')}
+          </div>
+        </div>`).join('')}
+    <div id="modDetailPanel"></div>`
+  loadModuleCounts(mods)
+}
+
+async function loadModuleCounts(mods){
+  for(const m of mods){
+    try{
+      const d=await api.get('/api/hierarchy/modules/'+m.id)
+      const mod=d.module||{}
+      const ec=document.getElementById('ec-'+m.id)
+      const nc=document.getElementById('nc-'+m.id)
+      if(ec)ec.textContent=mod.exams?.length??0
+      if(nc)nc.textContent=mod.notes?.length??0
+    }catch{}
+  }
+}
+
+// ── Module detail ──
+async function openModule(mId){
+  const m=S.allData.find(x=>x.id===mId);if(!m)return
+  S.selectedModule=m
+  document.querySelectorAll('.mod-card').forEach(c=>c.classList.remove('selected'))
+  const card=document.getElementById('mc-'+mId);if(card)card.classList.add('selected')
+  renderModuleItems()
+  const panel=document.getElementById('modDetailPanel')
+  if(!panel)return
+  panel.innerHTML='<div class="mod-detail"><div style="padding:2rem;text-align:center"><div class="spinner" style="margin:0 auto"></div></div></div>'
+  panel.scrollIntoView({behavior:'smooth',block:'start'})
+  try{
+    const d=await api.get('/api/hierarchy/modules/'+mId)
+    const mod=d.module,topics=mod.topics||[],exams=mod.exams||[],notes=mod.notes||[]
+    panel.innerHTML=`
+      <div class="mod-detail">
+        <div class="mod-detail-hdr">
+          <div>
+            <h3>${esc(mod.name)}</h3>
+            <div style="font-size:.75rem;color:var(--ink-muted);margin-top:.2rem">${mod.code} · Year ${mod.yearOfStudy} · Semester ${mod.semester} · ${mod.credits||0} credits</div>
+          </div>
+          <div style="display:flex;gap:.4rem;align-items:center">
+            <a href="/pages/course.html?id=${mId}" class="res-btn" style="font-size:.75rem;padding:.3rem .65rem;border-radius:6px;border:1px solid var(--border);color:var(--ink-muted);text-decoration:none">Full page ↗</a>
+            <button class="mod-detail-close" onclick="closeModuleDetail()">✕</button>
+          </div>
+        </div>
+        <div class="mod-detail-body">
+          <div class="mod-detail-col">
+            <div class="mdc-title">📋 Topics (${topics.length})</div>
+            ${topics.length?`<ul class="topic-list">${topics.map(t=>`<li class="topic-item"><span class="topic-dot"></span>${esc(t.name)}</li>`).join('')}</ul>`:'<div class="res-empty">No topics listed yet.</div>'}
+          </div>
+          <div class="mod-detail-col">
+            <div class="mdc-title">📄 Past Exams (${exams.length})</div>
+            ${exams.length?`<div class="res-list">${exams.map(e=>`<div class="res-item"><span class="res-icon">📄</span><div class="res-info"><div class="res-name">${esc(e.courseName)}</div><div class="res-meta">${EXAM_TYPE_BADGE[e.examType||'UE']||''} ${e.year} · ⬇ ${e.downloadCount||0}</div></div><a class="res-btn" href="/pages/exam-viewer.html?id=${e.id}">View</a></div>`).join('')}</div>`:`<div class="res-empty">No past exams yet.<br><a href="/pages/exams.html" style="color:var(--gold);font-size:.8rem">Upload one →</a></div>`}
+          </div>
+          <div class="mod-detail-col">
+            <div class="mdc-title">📝 Notes (${notes.length})</div>
+            ${notes.length?`<div class="res-list">${notes.map(n=>`<div class="res-item"><span class="res-icon">${n.fileType==='ppt'?'📊':'📄'}</span><div class="res-info"><div class="res-name">${esc(n.title)}</div><div class="res-meta">⬇ ${n.downloadCount||0}</div></div><a class="res-btn" href="/pages/note-viewer.html?id=${n.id}">View</a></div>`).join('')}</div>`:`<div class="res-empty">No notes yet.<br><a href="/pages/notes.html" style="color:var(--gold);font-size:.8rem">Upload some →</a></div>`}
+          </div>
+        </div>
+      </div>`
+  }catch(e){panel.innerHTML=`<div class="mod-detail" style="padding:2rem;text-align:center;color:var(--red)">${esc(e.message)}</div>`}
+}
+function closeModuleDetail(){
+  S.selectedModule=null
+  document.getElementById('modDetailPanel').innerHTML=''
+  document.querySelectorAll('.mod-card').forEach(c=>c.classList.remove('selected'))
+  renderModuleItems()
+}
+function showLoadingRight(){document.getElementById('abRight').innerHTML='<div style="padding:4rem;text-align:center"><div class="spinner" style="margin:0 auto;width:32px;height:32px;border-width:3px"></div></div>'}
+function showLoadingTree(){document.getElementById('abTree').innerHTML='<div class="tree-loading"><div class="spinner" style="margin:0 auto"></div></div>'}
+function showError(msg){document.getElementById('abRight').innerHTML=`<div class="ab-welcome"><p style="color:var(--red)">${esc(msg)}</p></div>`}
+</script>
+</body>
+</html>

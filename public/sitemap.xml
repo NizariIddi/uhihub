@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- ===================== PUBLIC / STATIC PAGES ===================== -->
+
+  <!-- Homepage -->
+  <url>
+    <loc>https://unihub.neezar9i.site/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Browse all documents/notes publicly -->
+  <url>
+    <loc>https://unihub.neezar9i.site/pages/browse.html</loc>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Search -->
+  <url>
+    <loc>https://unihub.neezar9i.site/pages/search.html</loc>
+    <changefreq>always</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Academic hierarchy / catalogue -->
+  <url>
+    <loc>https://unihub.neezar9i.site/pages/academics.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://unihub.neezar9i.site/pages/catalogue.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Course page (public listing) -->
+  <url>
+    <loc>https://unihub.neezar9i.site/pages/course.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Reviews (publicly visible) -->
+  <url>
+    <loc>https://unihub.neezar9i.site/pages/reviews.html</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Internships board -->
+  <url>
+    <loc>https://unihub.neezar9i.site/pages/internships.html</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Marketplace -->
+  <url>
+    <loc>https://unihub.neezar9i.site/pages/marketplace.html</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- ===================== AUTH PAGES ===================== -->
+
+  <url>
+    <loc>https://unihub.neezar9i.site/pages/login.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://unihub.neezar9i.site/pages/register.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- ===================== AUTHENTICATED USER PAGES ===================== -->
+  <!--
+    These pages require login. Search engines typically can't access them,
+    but listing them helps Google understand your site structure.
+  -->
+
+  <url>
+    <loc>https://unihub.neezar9i.site/pages/dashboard.html</loc>
+    <changefreq>always</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://unihub.neezar9i.site/pages/notes.html</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://unihub.neezar9i.site/pages/exams.html</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://unihub.neezar9i.site/pages/bookmarks.html</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>https://unihub.neezar9i.site/pages/profile.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- AI Explain feature -->
+  <url>
+    <loc>https://unihub.neezar9i.site/pages/ai-explain.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- ===================== DYNAMIC CONTENT PAGES ===================== -->
+  <!--
+    These pages are driven by query parameters or path IDs (e.g. ?id=123).
+    They cannot be listed statically — generate them from your database in production.
+
+    Patterns:
+      Note viewer     →  /pages/note-viewer.html?id=:noteId
+      Exam viewer     →  /pages/exam-viewer.html?id=:examId
+      Course detail   →  /pages/course.html?id=:courseId
+      User profile    →  /pages/profile.html?username=:username
+
+    Example DB generation (Node.js):
+      const notes = db.query('SELECT id FROM notes WHERE status = "approved"');
+      notes.forEach(n => {
+        xml += `<url><loc>https://unihub.neezar9i.site/pages/note-viewer.html?id=${n.id}</loc></url>\n`;
+      });
+  -->
+
+  <!-- ===================== ADMIN (exclude from indexing) ===================== -->
+  <!--
+    /pages/admin.html is intentionally excluded from this sitemap.
+    Block it in robots.txt:
+      Disallow: /pages/admin.html
+  -->
+
+</urlset>

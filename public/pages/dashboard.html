@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Dashboard — UniHub Tanzania</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <style>
+    .welcome-banner{background:var(--ink);border-radius:12px;padding:1.75rem 2rem;margin-bottom:2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;position:relative;overflow:hidden}
+    [data-theme="dark"] .welcome-banner{background:#0D0B05;border:1px solid rgba(245,200,66,.15)}
+    .welcome-banner::after{content:'';position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:50%;border:1px solid rgba(201,150,12,.15);pointer-events:none}
+    .welcome-banner::before{content:'';position:absolute;right:60px;bottom:-60px;width:150px;height:150px;border-radius:50%;border:1px solid rgba(201,150,12,.08);pointer-events:none}
+    .wb-text h2{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:#F5F0E8;margin-bottom:.3rem}
+    .wb-text p{font-size:.85rem;color:rgba(245,200,66,.6)}
+    .wb-actions{display:flex;gap:.6rem;flex-wrap:wrap;flex-shrink:0}
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+    @media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:480px){.stats-row{grid-template-columns:repeat(2,1fr);gap:.6rem}}
+    .stat-card{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:1.25rem;transition:border-color .2s}
+    .stat-card:hover{border-color:rgba(201,150,12,.3)}
+    .stat-num{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--gold);display:block}
+    .stat-lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-muted)}
+    .section-title{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--ink);margin-bottom:1rem}
+    .qa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.65rem;margin-bottom:2rem}
+    .qa-card{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:1.1rem;display:flex;align-items:center;gap:.85rem;transition:all .18s}
+    .qa-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 4px 16px rgba(201,150,12,.1)}
+    .qa-icon{width:42px;height:42px;background:var(--gold-pale);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+    .qa-label{font-size:.85rem;font-weight:600;color:var(--ink)}
+    .qa-hint{font-size:.75rem;color:var(--ink-muted);margin-top:.1rem}
+    .tip-banner{background:var(--gold-pale);border:1px solid rgba(201,150,12,.3);border-radius:10px;padding:1rem 1.25rem;margin-bottom:2rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+    [data-theme="dark"] .tip-banner{background:#2a2310;border-color:rgba(245,200,66,.2)}
+    .tip-icon{font-size:1.4rem;flex-shrink:0}
+    .tip-text{flex:1;min-width:0}
+    .tip-text strong{font-size:.875rem;display:block;margin-bottom:.15rem}
+    .tip-text span{font-size:.8rem;color:var(--ink-muted)}
+    .recent-list{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+    .recent-item{display:flex;align-items:center;gap:1rem;padding:.85rem 1.25rem;border-bottom:1px solid var(--border)}
+    .recent-item:last-child{border-bottom:none}
+    .recent-icon{width:34px;height:34px;background:var(--gold-pale);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .recent-label{font-size:.875rem;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .recent-time{font-size:.72rem;color:var(--ink-muted)}
+    /* Uni resources section */
+    .uni-section{margin-bottom:2rem}
+    .uni-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+    .uni-mini-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.75rem}
+    .uni-card{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:1rem;transition:all .18s}
+    .uni-card:hover{border-color:var(--gold)}
+    .uc-title{font-size:.85rem;font-weight:600;color:var(--ink);margin-bottom:.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .uc-meta{font-size:.72rem;color:var(--ink-muted)}
+    .uc-foot{display:flex;gap:.4rem;margin-top:.7rem;padding-top:.7rem;border-top:1px solid var(--border)}
+  </style>
+</head>
+<body>
+<div id="topbarMount"></div>
+<div class="layout">
+  <div id="sidebarMount"></div>
+  <main class="main">
+
+    <!-- Welcome banner -->
+    <div class="welcome-banner">
+      <div class="wb-text">
+        <h2 id="welcomeMsg">Loading...</h2>
+        <p id="welcomeSub">UniHub Tanzania</p>
+      </div>
+      <div class="wb-actions">
+        <a href="/pages/exams.html" class="btn btn-gold btn-sm">📄 Browse exams</a>
+        <a href="/pages/ai-explain.html" class="btn btn-sm" style="background:rgba(245,200,66,.15);color:#F5D97A;border:1px solid rgba(245,200,66,.3)">🤖 AI Tutor</a>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card"><span class="stat-num" id="sExams">—</span><span class="stat-lbl">Exams downloaded</span></div>
+      <div class="stat-card"><span class="stat-num" id="sAI">—</span><span class="stat-lbl">AI questions asked</span></div>
+      <div class="stat-card"><span class="stat-num" id="sNotes">—</span><span class="stat-lbl">Notes uploaded</span></div>
+      <div class="stat-card"><span class="stat-num" id="sExUploads">—</span><span class="stat-lbl">Exams uploaded</span></div>
+    </div>
+
+    <!-- Onboarding banner (hidden until stats loaded) -->
+    <div id="onboardBanner" style="display:none;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:1.5rem;margin-bottom:2rem">
+      <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:.75rem">👋 Welcome to UniHub Tanzania!</div>
+      <div style="font-size:.85rem;color:var(--ink-muted);margin-bottom:1rem">Here's how to get started:</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem">
+        <a href="/pages/exams.html" style="display:flex;align-items:center;gap:.75rem;padding:.85rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-decoration:none">
+          <div style="font-size:1.4rem">📄</div>
+          <div><div style="font-size:.82rem;font-weight:600;color:var(--ink)">Browse past exams</div><div style="font-size:.74rem;color:var(--ink-muted)">from your university</div></div>
+        </a>
+        <a href="/pages/ai-explain.html" style="display:flex;align-items:center;gap:.75rem;padding:.85rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-decoration:none">
+          <div style="font-size:1.4rem">🤖</div>
+          <div><div style="font-size:.82rem;font-weight:600;color:var(--ink)">Ask the AI tutor</div><div style="font-size:.74rem;color:var(--ink-muted)">any study question</div></div>
+        </a>
+        <a href="/pages/academics.html" style="display:flex;align-items:center;gap:.75rem;padding:.85rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-decoration:none">
+          <div style="font-size:1.4rem">🎓</div>
+          <div><div style="font-size:.82rem;font-weight:600;color:var(--ink)">Browse by programme</div><div style="font-size:.74rem;color:var(--ink-muted)">find your modules</div></div>
+        </a>
+        <a href="/pages/notes.html" style="display:flex;align-items:center;gap:.75rem;padding:.85rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-decoration:none">
+          <div style="font-size:1.4rem">📝</div>
+          <div><div style="font-size:.82rem;font-weight:600;color:var(--ink)">Upload your notes</div><div style="font-size:.74rem;color:var(--ink-muted)">help fellow students</div></div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Tip -->
+    <div class="tip-banner">
+      <div class="tip-icon">💡</div>
+      <div class="tip-text">
+        <strong>AI reads your exam PDFs</strong>
+        <span>Open any exam → click "🔍 Read exam" → ask the AI to answer specific questions directly from the paper!</span>
+      </div>
+      <a href="/pages/exams.html" class="btn btn-primary btn-sm" style="flex-shrink:0">Try it →</a>
+    </div>
+
+    <!-- University-specific resources -->
+    <div class="uni-section" id="uniSection" style="display:none">
+      <div class="uni-hdr">
+        <div class="section-title" id="uniTitle">From your university</div>
+        <a href="/pages/exams.html" id="uniSeeAll" style="font-size:.8rem;color:var(--gold)">See all →</a>
+      </div>
+      <div class="uni-mini-grid" id="uniExams">
+        <div class="skeleton" style="height:90px;border-radius:10px"></div>
+        <div class="skeleton" style="height:90px;border-radius:10px"></div>
+        <div class="skeleton" style="height:90px;border-radius:10px"></div>
+        <div class="skeleton" style="height:90px;border-radius:10px"></div>
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="section-title">Quick actions</div>
+    <div class="qa-grid">
+      <a href="/pages/exams.html" class="qa-card">
+        <div class="qa-icon">📄</div>
+        <div><div class="qa-label">Past Exams</div><div class="qa-hint">Search & view with AI</div></div>
+      </a>
+      <a href="/pages/academics.html" class="qa-card">
+        <div class="qa-icon">🎓</div>
+        <div><div class="qa-label">Academic Browser</div><div class="qa-hint">Browse by programme</div></div>
+      </a>
+      <a href="/pages/ai-explain.html" class="qa-card">
+        <div class="qa-icon">🤖</div>
+        <div><div class="qa-label">AI Tutor</div><div class="qa-hint">Step-by-step answers</div></div>
+      </a>
+      <a href="/pages/notes.html" class="qa-card">
+        <div class="qa-icon">📝</div>
+        <div><div class="qa-label">Notes</div><div class="qa-hint">Share & download</div></div>
+      </a>
+      <a href="/pages/internships.html" class="qa-card">
+        <div class="qa-icon">💼</div>
+        <div><div class="qa-label">Internships</div><div class="qa-hint">Opportunities in TZ</div></div>
+      </a>
+      <a href="/pages/reviews.html" class="qa-card">
+        <div class="qa-icon">⭐</div>
+        <div><div class="qa-label">Course Reviews</div><div class="qa-hint">Rate your courses</div></div>
+      </a>
+      <a href="/pages/marketplace.html" class="qa-card">
+        <div class="qa-icon">🛒</div>
+        <div><div class="qa-label">Notes Marketplace</div><div class="qa-hint">Request missing notes</div></div>
+      </a>
+      <a href="/pages/bookmarks.html" class="qa-card">
+        <div class="qa-icon">🔖</div>
+        <div><div class="qa-label">Bookmarks</div><div class="qa-hint">Saved resources</div></div>
+      </a>
+    </div>
+
+    <!-- Recent activity -->
+    <div class="section-title">Recent activity</div>
+    <div id="actList" class="recent-list">
+      <div class="recent-item"><div style="padding:.5rem;color:var(--ink-muted);font-size:.875rem;text-align:center;width:100%">Loading...</div></div>
+    </div>
+
+  </main>
+</div>
+
+<script src="/js/utils.js"></script>
+<script>
+  const UNI_FULL = {
+    udsm:'University of Dar es Salaam', udom:'University of Dodoma',
+    ardhi:'Ardhi University', muhas:'Muhimbili University (MUHAS)',
+    out:'Open University of Tanzania', sua:'Sokoine University (SUA)',
+    mzumbe:'Mzumbe University', ifm:'Institute of Finance Management',
+    cbe:'College of Business Education', jordan:'Jordan University',
+    saut:'St. Augustine University', other:'University',
+  }
+  const ACT_ICONS = { EXAM_DOWNLOAD:'📄', EXAM_UPLOAD:'📤', AI_EXPLAIN:'🤖', NOTE_UPLOAD:'📝', NOTE_DOWNLOAD:'📝' }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const user = requireAuth(); if (!user) return
+    renderLayout('dashboard'); initSidebar()
+
+    const h = new Date().getHours()
+    const greeting = h<12 ? 'Good morning' : h<17 ? 'Good afternoon' : 'Good evening'
+    document.getElementById('welcomeMsg').textContent = `${greeting}, ${user.firstName} 👋`
+    const uniName = UNI_FULL[user.university] || user.university?.toUpperCase() || 'UniHub'
+    document.getElementById('welcomeSub').textContent = `${uniName}${user.yearOfStudy ? ` · Year ${user.yearOfStudy}` : ''}`
+
+    // Stats
+    try {
+      const s = await api.get('/api/users/me/stats')
+      document.getElementById('sExams').textContent     = s.examsDownloaded || 0
+      document.getElementById('sAI').textContent        = s.aiUsed          || 0
+      document.getElementById('sNotes').textContent     = s.notesUploaded   || 0
+      document.getElementById('sExUploads').textContent = s.examsUploaded   || 0
+      // Show onboarding if brand new user
+      const total = (s.examsDownloaded||0)+(s.aiUsed||0)+(s.notesUploaded||0)
+      if (total === 0) {
+        const ob = document.getElementById('onboardBanner')
+        if (ob) ob.style.display = 'block'
+      }
+    } catch {}
+
+    // University-specific exams (personalized)
+    if (user.university) {
+      document.getElementById('uniSection').style.display = 'block'
+      document.getElementById('uniTitle').textContent = `Recent exams from ${UNI_FULL[user.university]||user.university.toUpperCase()}`
+      document.getElementById('uniSeeAll').href = `/pages/exams.html?uni=${user.university}`
+      try {
+        const d = await api.get(`/api/exams?university=${user.university}&limit=4`)
+        const exams = (d.exams||[]).slice(0,4)
+        const grid = document.getElementById('uniExams')
+        if (!exams.length) {
+          grid.innerHTML = '<div style="color:var(--ink-muted);font-size:.85rem;grid-column:1/-1;padding:1rem 0">No exams uploaded yet for your university. <a href="/pages/exams.html" style="color:var(--gold)">Be the first →</a></div>'
+        } else {
+          grid.innerHTML = exams.map(e => `
+            <div class="uni-card">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.4rem">
+                <span style="font-size:.68rem;background:var(--gold-pale);color:var(--gold);padding:.15rem .5rem;border-radius:20px;font-weight:600">${e.year}</span>
+                ${e.isFeatured?'<span style="font-size:.65rem;background:var(--badge-yellow-bg);color:var(--badge-yellow-fg);padding:.12rem .45rem;border-radius:20px">⭐ Featured</span>':''}
+              </div>
+              <div class="uc-title">${esc(e.courseName)}</div>
+              <div class="uc-meta">${e.courseCode||''} · ⬇ ${e.downloadCount||0}</div>
+              <div class="uc-foot">
+                <a href="/pages/exam-viewer.html?id=${e.id}" class="btn btn-primary btn-sm" style="flex:1;text-align:center;padding:.3rem">View</a>
+              </div>
+            </div>`).join('')
+        }
+      } catch { document.getElementById('uniSection').style.display='none' }
+    }
+
+    // Recent activity
+    try {
+      const acts = await api.get('/api/users/me/activity')
+      const list = document.getElementById('actList')
+      if (!acts.length) {
+        list.innerHTML = '<div class="recent-item" style="justify-content:center"><span style="color:var(--ink-muted);font-size:.875rem">No activity yet — start by browsing past exams!</span></div>'
+        return
+      }
+      list.innerHTML = acts.map(a => `
+        <div class="recent-item">
+          <div class="recent-icon">${ACT_ICONS[a.type]||'📌'}</div>
+          <div style="flex:1;min-width:0">
+            <div class="recent-label">${esc(a.title)}</div>
+            <div class="recent-time">${timeAgo(a.createdAt||a.created_at)}</div>
+          </div>
+        </div>`).join('')
+    } catch {}
+  })
+</script>
+</body>
+</html>

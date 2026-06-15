@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Browse — UniHub Tanzania</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <style>
+    /* ── Layout ── */
+    body { font-family: 'DM Sans', sans-serif; }
+    .br-wrap { display: flex; gap: 0; min-height: calc(100vh - 0px); }
+
+    /* ── Left tree panel ── */
+    .br-tree {
+      width: 300px; flex-shrink: 0; border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; background: var(--surface);
+      position: sticky; top: 0; height: 100vh; overflow: hidden;
+    }
+    .br-tree-hdr {
+      padding: 1.25rem 1.25rem .75rem; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .br-tree-hdr h2 { font-family:'Playfair Display',serif; font-size: 1.1rem; font-weight: 700; }
+    .br-tree-search { padding: .6rem 1rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .br-tree-search input {
+      width: 100%; border: 1px solid var(--border); border-radius: 6px;
+      padding: .4rem .75rem; font-size: .8rem; background: var(--card-bg);
+      color: var(--ink); outline: none; font-family: inherit;
+    }
+    .br-tree-search input:focus { border-color: var(--gold); }
+    .br-tree-body { flex: 1; overflow-y: auto; }
+
+    /* uni selector tabs */
+    .uni-tabs { display: flex; flex-wrap: wrap; gap: .3rem; padding: .75rem 1rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .uni-tab {
+      font-size: .7rem; font-weight: 600; padding: .25rem .65rem; border-radius: 20px;
+      border: 1px solid var(--border); cursor: pointer; color: var(--ink-muted);
+      background: var(--card-bg); transition: all .15s; letter-spacing: .03em;
+    }
+    .uni-tab.active { background: var(--ink); color: var(--gold-light); border-color: var(--ink); }
+    [data-theme="dark"] .uni-tab.active { background: var(--gold); color: #111008; border-color: var(--gold); }
+
+    /* tree nodes */
+    .tree-college { margin-bottom: .25rem; }
+    .tree-college-hdr {
+      display: flex; align-items: center; gap: .55rem; padding: .6rem 1rem;
+      cursor: pointer; transition: background .12s; border-radius: 0;
+    }
+    .tree-college-hdr:hover { background: var(--gold-pale); }
+    .tree-college-hdr.open { background: var(--gold-pale); }
+    .tree-college-icon { font-size: 1rem; flex-shrink: 0; }
+    .tree-college-name { font-size: .82rem; font-weight: 600; color: var(--ink); flex: 1; line-height: 1.3; }
+    .tree-chevron { font-size: .65rem; color: var(--ink-muted); transition: transform .2s; flex-shrink: 0; }
+    .tree-college-hdr.open .tree-chevron { transform: rotate(90deg); }
+
+    .tree-progs { display: none; border-left: 2px solid var(--gold-pale); margin-left: 1.75rem; }
+    .tree-progs.open { display: block; }
+    .tree-prog {
+      display: flex; align-items: center; gap: .5rem; padding: .45rem .75rem;
+      cursor: pointer; transition: background .12s; font-size: .8rem;
+      color: var(--ink-muted); border-radius: 0;
+    }
+    .tree-prog:hover { background: var(--gold-pale); color: var(--ink); }
+    .tree-prog.active { background: var(--gold-pale); color: var(--ink); font-weight: 500; }
+    .tree-prog-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+    .tree-prog.active .tree-prog-dot { background: var(--gold); }
+
+    /* ── Right content panel ── */
+    .br-content { flex: 1; min-width: 0; padding: 0; overflow-y: auto; }
+
+    /* ── Breadcrumb ── */
+    .br-crumb {
+      display: flex; align-items: center; gap: .4rem; padding: 1rem 2rem .5rem;
+      font-size: .78rem; color: var(--ink-muted); flex-wrap: wrap; flex-shrink: 0;
+    }
+    .br-crumb span { cursor: pointer; }
+    .br-crumb span:hover { color: var(--gold); }
+    .br-crumb .sep { color: var(--border); }
+    .br-crumb .cur { color: var(--ink); font-weight: 500; cursor: default; }
+
+    /* ── Programme header banner ── */
+    .prog-banner {
+      margin: 0 2rem 2rem; padding: 1.75rem 2rem;
+      background: var(--ink); border-radius: 12px; color: var(--gold-light);
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap;
+    }
+    [data-theme="dark"] .prog-banner { background: #1C1A12; border: 1px solid rgba(245,200,66,0.15); }
+    .prog-banner-main h1 { font-family:'Playfair Display',serif; font-size: 1.5rem; font-weight: 900; margin-bottom: .35rem; color: #F5D97A; }
+    .prog-banner-main p { font-size: .85rem; color: rgba(245,217,122,.55); margin-bottom: .75rem; }
+    .prog-meta-pills { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .prog-pill { font-size: .72rem; font-weight: 500; padding: .2rem .7rem; border-radius: 20px; border: 1px solid rgba(245,200,66,.3); color: #F5D97A; }
+    .prog-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; flex-shrink: 0; }
+    .prog-stat { text-align: center; }
+    .prog-stat strong { display: block; font-family:'Playfair Display',serif; font-size: 1.5rem; font-weight: 700; color: var(--gold); }
+    .prog-stat span { font-size: .7rem; color: rgba(245,217,122,.5); text-transform: uppercase; letter-spacing: .08em; }
+
+    /* ── Year tabs ── */
+    .year-tabs { display: flex; gap: 0; padding: 0 2rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; overflow-x: auto; }
+    .year-tab {
+      padding: .65rem 1.25rem; font-size: .85rem; font-weight: 500; cursor: pointer;
+      color: var(--ink-muted); border-bottom: 2px solid transparent; white-space: nowrap;
+      transition: all .15s; background: none; border-top: none; border-left: none; border-right: none;
+      font-family: inherit;
+    }
+    .year-tab:hover { color: var(--ink); }
+    .year-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* ── Module grid ── */
+    .modules-section { padding: 0 2rem 2rem; }
+    .sem-label {
+      font-size: .68rem; font-weight: 600; text-transform: uppercase; letter-spacing: .12em;
+      color: var(--ink-muted); margin-bottom: .75rem; margin-top: 1.25rem;
+      display: flex; align-items: center; gap: .6rem;
+    }
+    .sem-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .mods-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: .85rem; }
+    .mod-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 1.1rem; cursor: pointer; transition: all .18s; position: relative; overflow: hidden;
+    }
+    .mod-card:hover { border-color: var(--gold); box-shadow: 0 4px 16px rgba(201,150,12,.1); transform: translateY(-1px); }
+    .mod-card.active { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(201,150,12,.2); }
+    .mod-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: .5rem; gap: .5rem; }
+    .mod-code { font-size: .68rem; font-weight: 700; background: var(--gold-pale); color: var(--gold); padding: .18rem .55rem; border-radius: 20px; white-space: nowrap; }
+    .mod-core-badge { font-size: .65rem; background: var(--badge-blue-bg); color: var(--badge-blue-fg); padding: .18rem .55rem; border-radius: 20px; white-space: nowrap; }
+    .mod-elec-badge { font-size: .65rem; background: var(--badge-neutral-bg); color: var(--badge-neutral-fg); padding: .18rem .55rem; border-radius: 20px; white-space: nowrap; }
+    .mod-name { font-size: .92rem; font-weight: 600; line-height: 1.35; color: var(--ink); margin-bottom: .3rem; }
+    .mod-credits { font-size: .74rem; color: var(--ink-muted); }
+    .mod-topics-preview { margin-top: .65rem; display: flex; flex-wrap: wrap; gap: .3rem; }
+    .mod-topic-pill { font-size: .67rem; background: var(--surface); border: 1px solid var(--border); color: var(--ink-muted); padding: .15rem .5rem; border-radius: 20px; }
+    .mod-resource-bar { display: flex; gap: .5rem; margin-top: .75rem; padding-top: .65rem; border-top: 1px solid var(--border); }
+    .mod-res-btn {
+      flex: 1; text-align: center; font-size: .72rem; font-weight: 500; padding: .3rem .5rem;
+      border-radius: 6px; border: 1px solid var(--border); cursor: pointer;
+      color: var(--ink-muted); background: var(--surface); transition: all .15s; font-family: inherit;
+    }
+    .mod-res-btn:hover { border-color: var(--gold); color: var(--ink); background: var(--gold-pale); }
+    .mod-res-btn.has-data { color: var(--gold); border-color: rgba(201,150,12,.3); background: var(--gold-pale); }
+
+    /* ── Module detail panel (right slide-over) ── */
+    .mod-detail {
+      position: fixed; right: 0; top: 0; bottom: 0; width: 420px; z-index: 60;
+      background: var(--card-bg); border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; transform: translateX(100%);
+      transition: transform .3s cubic-bezier(.4,0,.2,1);
+      box-shadow: -8px 0 40px rgba(0,0,0,.12);
+    }
+    .mod-detail.open { transform: translateX(0); }
+    .mod-detail-hdr {
+      padding: 1.25rem 1.25rem .85rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start; gap: .75rem; flex-shrink: 0;
+    }
+    .mod-detail-close {
+      background: none; border: none; cursor: pointer; color: var(--ink-muted);
+      font-size: 1.1rem; padding: .15rem .35rem; border-radius: 6px; flex-shrink: 0; margin-top: .1rem;
+    }
+    .mod-detail-close:hover { background: var(--gold-pale); }
+    .mod-detail-title { flex: 1; }
+    .mod-detail-title h3 { font-family:'Playfair Display',serif; font-size: 1.1rem; font-weight: 700; line-height: 1.3; }
+    .mod-detail-meta { font-size: .76rem; color: var(--ink-muted); margin-top: .25rem; }
+    .mod-detail-body { flex: 1; overflow-y: auto; padding: 1.25rem; }
+
+    /* detail sections */
+    .detail-section { margin-bottom: 1.5rem; }
+    .detail-section-title {
+      font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em;
+      color: var(--ink-muted); margin-bottom: .6rem; padding-bottom: .4rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .topic-list { list-style: none; display: flex; flex-direction: column; gap: .3rem; }
+    .topic-item {
+      display: flex; align-items: center; gap: .6rem; padding: .45rem .65rem;
+      border-radius: 6px; font-size: .82rem; color: var(--ink);
+      background: var(--surface); border: 1px solid var(--border);
+    }
+    .topic-num { font-size: .65rem; font-weight: 700; color: var(--gold); min-width: 18px; }
+    .res-empty { font-size: .82rem; color: var(--ink-muted); text-align: center; padding: 1.5rem; }
+    .res-item {
+      display: flex; align-items: center; gap: .75rem; padding: .6rem .75rem;
+      border-radius: 8px; border: 1px solid var(--border); background: var(--surface);
+      margin-bottom: .5rem; cursor: pointer; transition: all .15s;
+    }
+    .res-item:hover { border-color: var(--gold); background: var(--gold-pale); }
+    .res-item-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .res-item-body { flex: 1; min-width: 0; }
+    .res-item-title { font-size: .82rem; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .res-item-meta { font-size: .72rem; color: var(--ink-muted); }
+    .res-item-action { font-size: .75rem; color: var(--gold); font-weight: 500; flex-shrink: 0; }
+
+    /* ── Empty / loading states ── */
+    .br-empty { text-align: center; padding: 5rem 2rem; color: var(--ink-muted); }
+    .br-empty .big { font-size: 3rem; margin-bottom: 1rem; }
+    .br-empty h3 { font-family:'Playfair Display',serif; font-size: 1.25rem; color: var(--ink); margin-bottom: .5rem; }
+
+    @media(max-width:900px) {
+      .br-tree { width: 240px; }
+      .prog-stats { display: none; }
+      .mod-detail { width: 100%; }
+    }
+    @media(max-width:650px) {
+      .br-tree { position: fixed; left: 0; top: 0; bottom: 0; z-index: 55; transform: translateX(-100%); transition: transform .3s; width: 280px; }
+      .br-tree.open { transform: translateX(0); }
+      .br-content { padding-left: 0; }
+      .tree-toggle { display: flex !important; }
+    }
+    .tree-toggle { display: none; position: fixed; bottom: 1.5rem; left: 1.5rem; z-index: 54; background: var(--ink); color: var(--gold-light); border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 1.2rem; cursor: pointer; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,.2); }
+  </style>
+</head>
+<body>
+<div id="topbarMount"></div>
+<div class="layout">
+  <div id="sidebarMount"></div>
+  <main class="main" style="padding:0;overflow:hidden;display:flex;flex-direction:column">
+
+    <div class="br-wrap">
+      <!-- Left tree -->
+      <div class="br-tree" id="brTree">
+        <div class="br-tree-hdr">
+          <div class="label" style="margin-bottom:.25rem">Academic structure</div>
+          <h2>Browse by programme</h2>
+        </div>
+        <div class="uni-tabs" id="uniTabs"></div>
+        <div class="br-tree-search">
+          <input type="text" id="treeSearch" placeholder="Search programmes..." oninput="filterTree(this.value)"/>
+        </div>
+        <div class="br-tree-body" id="treeBody">
+          <div style="padding:2rem;text-align:center">
+            <div class="spinner" style="margin:0 auto"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right content -->
+      <div class="br-content" id="brContent">
+        <div class="br-empty" id="brWelcome">
+          <div class="big">🎓</div>
+          <h3>Pick a programme to explore</h3>
+          <p style="font-size:.875rem;max-width:360px;margin:.5rem auto 0">Select a university, then a college and programme from the left to see all modules, topics, past exams and notes — organised by year.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Module detail slide-over -->
+    <div class="mod-detail" id="modDetail">
+      <div class="mod-detail-hdr">
+        <button class="mod-detail-close" onclick="closeDetail()">✕</button>
+        <div class="mod-detail-title">
+          <h3 id="detailName">Module</h3>
+          <div class="mod-detail-meta" id="detailMeta"></div>
+        </div>
+      </div>
+      <div class="mod-detail-body" id="detailBody"></div>
+    </div>
+    <div id="detailOverlay" onclick="closeDetail()" style="display:none;position:fixed;inset:0;z-index:59;background:rgba(0,0,0,.3)"></div>
+
+    <!-- Mobile tree toggle -->
+    <button class="tree-toggle" id="treeToggle" onclick="toggleTree()">☰</button>
+  </main>
+</div>
+
+<script src="/js/utils.js"></script>
+<script>
+  const UNI_LABELS = { udsm:'UDSM', udom:'UDOM', ardhi:'Ardhi', muhas:'MUHAS', out:'OUT', sua:'SUA', mzumbe:'Mzumbe', ifm:'IFM', cbe:'CBE', jordan:'Jordan', saut:'SAUT', other:'Other' }
+  let treeData = {}      // { udsm: [colleges...] }
+  let activeProg = null
+  let selectedYear = 1
+  let selectedUni = ''
+  let allUnisWithData = []
+  let moduleResources = {}  // moduleId -> { exams:[], notes:[] }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    requireAuth(); renderLayout('browse'); initSidebar()
+    await loadTree()
+  })
+
+  // ── Load tree ─────────────────────────────────────────────
+  async function loadTree() {
+    // find which unis have hierarchy data
+    const unis = Object.keys(UNI_LABELS).filter(k => k !== 'other')
+    const results = await Promise.allSettled(unis.map(u => api.get(`/api/hierarchy/tree?university=${u}`)))
+    results.forEach((r, i) => {
+      if (r.status === 'fulfilled' && r.value.colleges?.length) {
+        treeData[unis[i]] = r.value.colleges
+        allUnisWithData.push(unis[i])
+      }
+    })
+    if (!allUnisWithData.length) {
+      document.getElementById('treeBody').innerHTML = `<div style="padding:2rem;text-align:center;font-size:.85rem;color:var(--ink-muted)">No academic data yet.<br>Ask your admin to seed the hierarchy.</div>`
+      return
+    }
+    renderUniTabs()
+    selectUni(allUnisWithData[0])
+  }
+
+  function renderUniTabs() {
+    document.getElementById('uniTabs').innerHTML = allUnisWithData.map(u =>
+      `<button class="uni-tab" onclick="selectUni('${u}')" id="utab-${u}">${UNI_LABELS[u]||u.toUpperCase()}</button>`
+    ).join('')
+  }
+
+  function selectUni(uni) {
+    selectedUni = uni
+    allUnisWithData.forEach(u => document.getElementById(`utab-${u}`)?.classList.toggle('active', u===uni))
+    renderTree(treeData[uni] || [], '')
+  }
+
+  function renderTree(colleges, q) {
+    const body = document.getElementById('treeBody')
+    if (!colleges.length) { body.innerHTML = '<div style="padding:1.5rem;text-align:center;font-size:.82rem;color:var(--ink-muted)">Nothing found</div>'; return }
+    let html = ''
+    for (const col of colleges) {
+      const progs = col.programmes || []
+      const filteredProgs = q ? progs.filter(p => p.name.toLowerCase().includes(q) || (p.code||'').toLowerCase().includes(q)) : progs
+      if (q && !filteredProgs.length && !col.name.toLowerCase().includes(q)) continue
+      const isOpen = !q ? false : filteredProgs.length > 0
+      html += `<div class="tree-college">
+        <div class="tree-college-hdr${isOpen?' open':''}" onclick="toggleCollege(this)">
+          <span class="tree-college-icon">${esc(col.icon||'📚')}</span>
+          <span class="tree-college-name">${esc(col.shortName || col.name)}</span>
+          <span class="tree-chevron">▶</span>
+        </div>
+        <div class="tree-progs${isOpen?' open':''}">
+          ${filteredProgs.map(p => `
+            <div class="tree-prog" id="tp-${p.id}" onclick="selectProg('${p.id}','${esc(col.name)}','${esc(col.icon||'📚')}')">
+              <span class="tree-prog-dot"></span>
+              <span>${esc(p.name)}</span>
+            </div>`).join('')}
+        </div>
+      </div>`
+    }
+    body.innerHTML = html || '<div style="padding:1.5rem;text-align:center;font-size:.82rem;color:var(--ink-muted)">No results</div>'
+  }
+
+  function toggleCollege(el) {
+    el.classList.toggle('open')
+    el.nextElementSibling.classList.toggle('open')
+  }
+
+  function filterTree(q) {
+    renderTree(treeData[selectedUni] || [], q.toLowerCase().trim())
+  }
+
+  // ── Select programme → show content ───────────────────────
+  async function selectProg(progId, collegeName, collegeIcon) {
+    // highlight in tree
+    document.querySelectorAll('.tree-prog').forEach(el => el.classList.remove('active'))
+    document.getElementById(`tp-${progId}`)?.classList.add('active')
+
+    // find programme object
+    let prog = null
+    for (const col of (treeData[selectedUni]||[])) {
+      prog = (col.programmes||[]).find(p => p.id === progId)
+      if (prog) break
+    }
+    if (!prog) return
+
+    activeProg = prog
+    selectedYear = 1
+    moduleResources = {}
+
+    // fetch module resources in background
+    fetchModuleResources(prog)
+
+    renderProgContent(prog, collegeName, collegeIcon)
+  }
+
+  async function fetchModuleResources(prog) {
+    // get all modules for this prog with exams/notes counts
+    try {
+      const allMods = (prog.modules || [])
+      await Promise.allSettled(allMods.map(async mod => {
+        const [exR, noR] = await Promise.allSettled([
+          api.get(`/api/exams?search=${encodeURIComponent(mod.code)}`),
+          api.get(`/api/notes?search=${encodeURIComponent(mod.code)}`),
+        ])
+        moduleResources[mod.id] = {
+          exams: exR.status === 'fulfilled' ? (exR.value.exams || []) : [],
+          notes: noR.status === 'fulfilled' ? (noR.value.notes || []) : [],
+        }
+      }))
+      // re-render to show resource counts
+      if (activeProg?.id === prog.id) renderModules()
+    } catch(e) {}
+  }
+
+  function renderProgContent(prog, collegeName, collegeIcon) {
+    const years = [...new Set((prog.modules||[]).map(m => m.yearOfStudy))].sort()
+    const totalModules = (prog.modules||[]).length
+    const coreCount = (prog.modules||[]).filter(m => m.isCore).length
+    const totalTopics = (prog.modules||[]).reduce((s,m) => s + (m.topics||[]).length, 0)
+
+    const content = document.getElementById('brContent')
+    content.innerHTML = `
+      <div class="br-crumb" id="brCrumb">
+        <span onclick="goHome()">Home</span>
+        <span class="sep">›</span>
+        <span onclick="selectUni('${selectedUni}')">${esc(UNI_LABELS[selectedUni]||selectedUni.toUpperCase())}</span>
+        <span class="sep">›</span>
+        <span>${esc(collegeName)}</span>
+        <span class="sep">›</span>
+        <span class="cur">${esc(prog.name)}</span>
+      </div>
+      <div class="prog-banner">
+        <div class="prog-banner-main">
+          <h1>${esc(prog.name)}</h1>
+          <p>${esc(collegeName)} &nbsp;·&nbsp; ${esc(UNI_LABELS[selectedUni]||selectedUni.toUpperCase())}</p>
+          <div class="prog-meta-pills">
+            <span class="prog-pill">${esc(prog.code||'')}</span>
+            <span class="prog-pill">${prog.duration || '?'} years</span>
+            <span class="prog-pill" style="text-transform:capitalize">${esc(prog.degreeLevel||'bachelor')}</span>
+          </div>
+        </div>
+        <div class="prog-stats">
+          <div class="prog-stat"><strong>${totalModules}</strong><span>Modules</span></div>
+          <div class="prog-stat"><strong>${coreCount}</strong><span>Core</span></div>
+          <div class="prog-stat"><strong>${totalTopics}</strong><span>Topics</span></div>
+        </div>
+      </div>
+      <div class="year-tabs" id="yearTabs">
+        ${years.map(y => `<button class="year-tab${y===selectedYear?' active':''}" onclick="setYear(${y})">Year ${y}</button>`).join('')}
+        <button class="year-tab${selectedYear===0?' active':''}" onclick="setYear(0)">All years</button>
+      </div>
+      <div class="modules-section" id="modulesSection"></div>
+    `
+    renderModules()
+  }
+
+  function setYear(y) {
+    selectedYear = y
+    document.querySelectorAll('.year-tab').forEach(el => {
+      const elY = el.textContent === 'All years' ? 0 : parseInt(el.textContent.replace('Year ',''))
+      el.classList.toggle('active', elY === y)
+    })
+    renderModules()
+  }
+
+  function renderModules() {
+    if (!activeProg) return
+    const mods = (activeProg.modules||[]).filter(m => selectedYear === 0 || m.yearOfStudy === selectedYear)
+    const section = document.getElementById('modulesSection')
+    if (!section) return
+    if (!mods.length) { section.innerHTML = '<div class="br-empty"><div class="big">📭</div><h3>No modules for this year</h3></div>'; return }
+
+    // group by semester
+    const bySem = {}
+    for (const m of mods) {
+      const k = m.semester
+      ;(bySem[k] = bySem[k]||[]).push(m)
+    }
+    const semOrder = ['1','2','full-year']
+    const semLabel = { '1':'Semester 1', '2':'Semester 2', 'full-year':'Full year' }
+
+    let html = ''
+    for (const s of semOrder) {
+      if (!bySem[s]) continue
+      html += `<div class="sem-label">${semLabel[s]||s}</div><div class="mods-grid">`
+      for (const m of bySem[s]) {
+        const res = moduleResources[m.id] || { exams:[], notes:[] }
+        const topicsPreview = (m.topics||[]).slice(0,3).map(t => `<span class="mod-topic-pill">${esc(t.name)}</span>`).join('')
+        const moreTopics = (m.topics||[]).length > 3 ? `<span class="mod-topic-pill" style="opacity:.6">+${(m.topics||[]).length-3} more</span>` : ''
+        html += `
+          <div class="mod-card" id="mc-${m.id}" onclick="openDetail('${m.id}')">
+            <div class="mod-card-top">
+              <span class="mod-code">${esc(m.code)}</span>
+              <span class="${m.isCore?'mod-core-badge':'mod-elec-badge'}">${m.isCore?'Core':'Elective'}</span>
+            </div>
+            <div class="mod-name">${esc(m.name)}</div>
+            <div class="mod-credits">${m.credits||'?'} credits &nbsp;·&nbsp; ${(m.topics||[]).length} topics</div>
+            <div class="mod-topics-preview">${topicsPreview}${moreTopics}</div>
+            <div class="mod-resource-bar">
+              <button class="mod-res-btn${res.exams.length?' has-data':''}" onclick="event.stopPropagation();openDetailTab('${m.id}','exams')">
+                📄 ${res.exams.length||0} exam${res.exams.length!==1?'s':''}
+              </button>
+              <button class="mod-res-btn${res.notes.length?' has-data':''}" onclick="event.stopPropagation();openDetailTab('${m.id}','notes')">
+                📝 ${res.notes.length||0} note${res.notes.length!==1?'s':''}
+              </button>
+            </div>
+          </div>`
+      }
+      html += '</div>'
+    }
+    section.innerHTML = html
+  }
+
+  // ── Module detail panel ────────────────────────────────────
+  let detailTab = 'topics'
+
+  function openDetail(modId) {
+    openDetailTab(modId, 'topics')
+  }
+
+  function openDetailTab(modId, tab) {
+    detailTab = tab
+    // find module
+    let mod = null
+    for (const m of (activeProg?.modules||[])) {
+      if (m.id === modId) { mod = m; break }
+    }
+    if (!mod) return
+
+    document.querySelectorAll('.mod-card').forEach(c => c.classList.toggle('active', c.id === `mc-${modId}`))
+
+    document.getElementById('detailName').textContent = mod.name
+    document.getElementById('detailMeta').innerHTML = `
+      <span class="mod-code" style="margin-right:.4rem">${esc(mod.code)}</span>
+      Year ${mod.yearOfStudy} &nbsp;·&nbsp; Sem ${mod.semester} &nbsp;·&nbsp; ${mod.credits||'?'} credits
+    `
+
+    renderDetailBody(mod)
+    document.getElementById('modDetail').classList.add('open')
+    document.getElementById('detailOverlay').style.display = 'block'
+  }
+
+  function renderDetailBody(mod) {
+    const res = moduleResources[mod.id] || { exams:[], notes:[] }
+    const topics = mod.topics || []
+
+    let html = `
+      <div style="display:flex;gap:.35rem;margin-bottom:1.25rem">
+        ${['topics','exams','notes'].map(t => `
+          <button onclick="switchDetailTab('${mod.id}','${t}')"
+            style="flex:1;padding:.4rem;border-radius:6px;border:1px solid ${detailTab===t?'var(--gold)':'var(--border)'};background:${detailTab===t?'var(--gold-pale)':'var(--surface)'};color:${detailTab===t?'var(--ink)':'var(--ink-muted)'};font-size:.78rem;cursor:pointer;font-family:inherit;font-weight:${detailTab===t?'600':'400'}">
+            ${t==='topics'?`📋 Topics (${topics.length})`:t==='exams'?`📄 Exams (${res.exams.length})`: `📝 Notes (${res.notes.length})`}
+          </button>`).join('')}
+      </div>`
+
+    if (detailTab === 'topics') {
+      if (!topics.length) { html += `<div class="res-empty">No topics listed yet</div>` }
+      else {
+        html += `<ul class="topic-list">${topics.map((t,i) => `
+          <li class="topic-item">
+            <span class="topic-num">${i+1}</span>
+            <span>${esc(t.name)}</span>
+          </li>`).join('')}</ul>`
+      }
+    } else if (detailTab === 'exams') {
+      if (!res.exams.length) {
+        html += `<div class="res-empty">No past exams linked yet</div>
+          <div style="text-align:center">
+            <a href="/pages/exams.html" class="btn btn-secondary btn-sm" style="margin-top:.5rem">Browse all exams</a>
+          </div>`
+      } else {
+        html += res.exams.map(e => `
+          <div class="res-item" onclick="window.location.href='/pages/exam-viewer.html?id=${e.id}'">
+            <span class="res-item-icon">📄</span>
+            <div class="res-item-body">
+              <div class="res-item-title">${esc(e.courseName)}</div>
+              <div class="res-item-meta">${e.year} &nbsp;·&nbsp; ${esc((UNI_LABELS[e.university]||e.university||'').toUpperCase())}</div>
+            </div>
+            <span class="res-item-action">View →</span>
+          </div>`).join('')
+      }
+    } else {
+      if (!res.notes.length) {
+        html += `<div class="res-empty">No notes linked yet</div>
+          <div style="text-align:center">
+            <a href="/pages/notes.html" class="btn btn-secondary btn-sm" style="margin-top:.5rem">Browse all notes</a>
+          </div>`
+      } else {
+        html += res.notes.map(n => `
+          <div class="res-item" onclick="window.open('${fileUrl('/api/notes/'+n.id+'/file')}','_blank')">
+            <span class="res-item-icon">📝</span>
+            <div class="res-item-body">
+              <div class="res-item-title">${esc(n.title)}</div>
+              <div class="res-item-meta">${esc(n.courseCode||'')} &nbsp;·&nbsp; ⬇ ${n.downloadCount||0}</div>
+            </div>
+            <span class="res-item-action">Open →</span>
+          </div>`).join('')
+      }
+    }
+
+    document.getElementById('detailBody').innerHTML = html
+  }
+
+  function switchDetailTab(modId, tab) {
+    detailTab = tab
+    let mod = null
+    for (const m of (activeProg?.modules||[])) { if(m.id===modId){mod=m;break} }
+    if (mod) renderDetailBody(mod)
+  }
+
+  function closeDetail() {
+    document.getElementById('modDetail').classList.remove('open')
+    document.getElementById('detailOverlay').style.display = 'none'
+    document.querySelectorAll('.mod-card').forEach(c => c.classList.remove('active'))
+  }
+
+  function goHome() {
+    document.querySelectorAll('.tree-prog').forEach(el => el.classList.remove('active'))
+    activeProg = null
+    document.getElementById('brContent').innerHTML = document.getElementById('brWelcome')?.outerHTML || `
+      <div class="br-empty">
+        <div class="big">🎓</div>
+        <h3>Pick a programme to explore</h3>
+        <p style="font-size:.875rem;max-width:360px;margin:.5rem auto 0">Select a university, then a college and programme from the left.</p>
+      </div>`
+  }
+
+  function toggleTree() {
+    document.getElementById('brTree').classList.toggle('open')
+  }
+</script>
+</body>
+</html>

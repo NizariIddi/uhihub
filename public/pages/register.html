@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Create Account — UniHub Tanzania</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100vh}
+    body{display:flex;background:var(--surface);color:var(--ink);font-family:'DM Sans',sans-serif}
+    .lp{width:38%;background:var(--ink);display:flex;flex-direction:column;justify-content:space-between;padding:3rem;position:relative;overflow:hidden;flex-shrink:0}
+    [data-theme="dark"] .lp{background:#0D0B05;border-right:1px solid rgba(245,200,66,.1)}
+    .lp-circle{position:absolute;border-radius:50%;border:1px solid rgba(201,150,12,.12)}
+    .lp-c1{width:380px;height:380px;top:-60px;right:-100px}
+    .lp-c2{width:220px;height:220px;bottom:80px;left:-50px;border-color:rgba(201,150,12,.07)}
+    .lp-logo{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;color:var(--gold-pale);position:relative}
+    .lp-logo span{color:var(--gold)}
+    .feats{list-style:none;display:flex;flex-direction:column;gap:1.25rem;position:relative}
+    .feats li{display:flex;align-items:flex-start;gap:.85rem}
+    .fi{width:38px;height:38px;background:rgba(201,150,12,.12);border:1px solid rgba(201,150,12,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1rem}
+    .ft{font-size:.88rem;color:#F5D97A;font-weight:500;margin-bottom:.15rem}
+    .fd{font-size:.74rem;color:rgba(201,150,12,.5)}
+    .lp-copy{font-size:.72rem;color:rgba(201,150,12,.3);position:relative}
+    .rp{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:2.5rem;overflow-y:auto;background:var(--surface)}
+    [data-theme="dark"] .rp{background:#111008}
+    .box{width:100%;max-width:460px;padding:.5rem 0}
+    .box-logo{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:900;color:var(--ink);display:block;margin-bottom:2rem}
+    .box-logo span{color:var(--gold)}
+    .box h1{font-size:1.65rem;font-weight:700;color:var(--ink);margin-bottom:.3rem;letter-spacing:-.3px}
+    .box-sub{font-size:.88rem;color:var(--ink-muted);margin-bottom:1.75rem}
+    .fg{margin-bottom:1rem}
+    .fg label{display:block;font-size:.82rem;font-weight:500;color:var(--ink);margin-bottom:.4rem}
+    .fg .hint{font-size:.73rem;color:var(--ink-muted);margin-top:.3rem}
+    .g2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+    .step-badge{display:inline-flex;align-items:center;gap:.5rem;background:var(--gold-pale);color:var(--gold);font-size:.72rem;font-weight:600;padding:.25rem .65rem;border-radius:20px;margin-bottom:1rem;letter-spacing:.04em}
+    .step-badge span{width:16px;height:16px;background:var(--gold);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;flex-shrink:0}
+    .terms{font-size:.75rem;color:var(--ink-muted);text-align:center;margin-top:.75rem}
+    .foot{text-align:center;font-size:.85rem;color:var(--ink-muted);margin-top:1.25rem}
+    .foot a{color:var(--gold);font-weight:500}
+    .theme-btn{position:fixed;top:1rem;right:1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.35rem .6rem;cursor:pointer;font-size:.95rem;color:var(--ink-muted);z-index:100}
+    .theme-btn:hover{border-color:var(--gold)}
+    [data-theme="dark"] .theme-btn{background:#1C1A12}
+    @media(max-width:720px){.lp{display:none}.g2{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="lp">
+  <div class="lp-circle lp-c1"></div>
+  <div class="lp-circle lp-c2"></div>
+  <div class="lp-logo">Uni<span>Hub</span></div>
+  <ul class="feats">
+    <li><div class="fi">📄</div><div><div class="ft">Past exam library</div><div class="fd">Thousands of papers from all major Tanzanian universities</div></div></li>
+    <li><div class="fi">🤖</div><div><div class="ft">AI-powered tutoring</div><div class="fd">Ask questions in English or Swahili, get step-by-step answers</div></div></li>
+    <li><div class="fi">🎓</div><div><div class="ft">Academic browser</div><div class="fd">Browse by university → college → programme → module → topics</div></div></li>
+    <li><div class="fi">💼</div><div><div class="ft">Internship board</div><div class="fd">Opportunities from companies hiring Tanzanian graduates</div></div></li>
+  </ul>
+  <div class="lp-copy">© 2026 UniHub Tanzania. Free forever.</div>
+</div>
+
+<div class="rp">
+  <div class="box">
+    <a href="/" class="box-logo">Uni<span>Hub</span></a>
+    <h1>Create your account</h1>
+    <p class="box-sub">Free forever — no credit card required.</p>
+
+    <div id="errBox" class="alert alert-error hidden" style="margin-bottom:1rem"></div>
+
+    <form id="regForm">
+      <!-- Step 1: Personal -->
+      <div class="step-badge"><span>1</span> Personal info</div>
+      <div class="g2">
+        <div class="fg"><label>First name *</label><input class="input" type="text" id="firstName" placeholder="Amina" required autocomplete="given-name"/></div>
+        <div class="fg"><label>Last name *</label><input class="input" type="text" id="lastName" placeholder="Mwangi" required autocomplete="family-name"/></div>
+      </div>
+      <div class="fg"><label>Email address *</label><input class="input" type="email" id="email" placeholder="you@university.ac.tz" required autocomplete="email"/></div>
+
+      <!-- Step 2: Academic -->
+      <div class="step-badge" style="margin-top:.75rem"><span>2</span> Your academic details</div>
+      <div class="fg">
+        <label>University *</label>
+        <select class="input" id="university" required onchange="onUniChange()">
+          <option value="">Select your university</option>
+          <option value="udsm">University of Dar es Salaam (UDSM)</option>
+          <option value="udom">University of Dodoma (UDOM)</option>
+          <option value="ardhi">Ardhi University</option>
+          <option value="muhas">Muhimbili University (MUHAS)</option>
+          <option value="out">Open University of Tanzania (OUT)</option>
+          <option value="sua">Sokoine University of Agriculture (SUA)</option>
+          <option value="mzumbe">Mzumbe University</option>
+          <option value="ifm">Institute of Finance Management (IFM)</option>
+          <option value="cbe">College of Business Education (CBE)</option>
+          <option value="jordan">Jordan University College</option>
+          <option value="saut">St. Augustine University (SAUT)</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="fg" id="fgCollege" style="display:none">
+        <label>College / Faculty *</label>
+        <select class="input" id="college" onchange="onCollegeChange()"><option value="">Select college...</option></select>
+      </div>
+      <div class="fg" id="fgProg" style="display:none">
+        <label>Programme *</label>
+        <select class="input" id="programme" onchange="onProgChange()"><option value="">Select programme...</option></select>
+      </div>
+      <div class="fg" id="fgYear" style="display:none">
+        <label>Year of study *</label>
+        <select class="input" id="yearOfStudy"><option value="">Select year</option></select>
+        <div class="hint">Which year are you currently in?</div>
+      </div>
+      <div class="fg" id="fgFacFallback" style="display:none">
+        <label>Faculty / Department <span style="font-weight:300;color:var(--ink-muted)">(optional)</span></label>
+        <input class="input" type="text" id="faculty" placeholder="e.g. Engineering, Medicine, Business"/>
+      </div>
+
+      <!-- Step 3: Password -->
+      <div class="step-badge" style="margin-top:.75rem"><span>3</span> Secure your account</div>
+      <div class="fg">
+        <label>Password *</label>
+        <div style="position:relative">
+          <input class="input" type="password" id="password" placeholder="Minimum 6 characters" required autocomplete="new-password" style="padding-right:2.8rem" oninput="checkPwdStrength()"/>
+          <button type="button" onclick="toggleRegPwd('password')" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink-muted);font-size:1rem;padding:0;line-height:1" title="Show/hide">👁</button>
+        </div>
+        <div id="pwdStrengthBar" style="height:3px;border-radius:2px;margin-top:.4rem;background:var(--border);overflow:hidden;display:none">
+          <div id="pwdStrengthFill" style="height:100%;width:0%;transition:width .3s,background .3s"></div>
+        </div>
+        <div id="pwdStrengthLabel" style="font-size:.74rem;margin-top:.25rem;color:var(--ink-muted)"></div>
+      </div>
+      <div class="fg">
+        <label>Confirm password *</label>
+        <div style="position:relative">
+          <input class="input" type="password" id="confirmPassword" placeholder="Re-enter your password" required autocomplete="new-password" style="padding-right:2.8rem" oninput="checkPwdMatch()"/>
+          <button type="button" onclick="toggleRegPwd('confirmPassword')" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink-muted);font-size:1rem;padding:0;line-height:1" title="Show/hide">👁</button>
+        </div>
+        <div id="pwdMatchMsg" style="font-size:.74rem;margin-top:.25rem"></div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" id="submitBtn">Create free account →</button>
+      <p class="terms">By signing up you agree to our Terms of Service.</p>
+    </form>
+    <p class="foot">Already have an account? <a href="/pages/login.html">Sign in</a></p>
+  </div>
+</div>
+
+<button class="theme-btn" id="regThemeBtn" onclick="toggleDarkMode()" title="Toggle dark mode"></button>
+
+<script src="/js/utils.js"></script>
+<script>
+  const _rtb = document.getElementById('regThemeBtn')
+  function _syncT(){ if(_rtb) _rtb.textContent = localStorage.getItem('theme')==='dark' ? '☀️' : '🌙' }
+  _syncT()
+  const _origR = window.updateThemeBtn
+  window.updateThemeBtn = function(){ if(_origR)_origR(); _syncT() }
+
+  // NOTE: No auto-redirect here — users may want to create a second account
+  // or re-register after logout. Redirect only happens after successful submit.
+
+  let _progDur = 4
+
+  async function onUniChange() {
+    const uni = document.getElementById('university').value
+    const fgC=document.getElementById('fgCollege'), fgP=document.getElementById('fgProg')
+    const fgY=document.getElementById('fgYear'), fgF=document.getElementById('fgFacFallback')
+    fgC.style.display=fgP.style.display=fgY.style.display=fgF.style.display='none'
+    if (!uni) return
+    try {
+      const d = await api.get('/api/hierarchy/colleges?university='+uni)
+      const cols = d.colleges||[]
+      if (cols.length) {
+        document.getElementById('college').innerHTML = '<option value="">Select college...</option>' +
+          cols.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')
+        fgC.style.display='block'
+      } else { fgF.style.display='block' }
+    } catch { fgF.style.display='block' }
+  }
+
+  async function onCollegeChange() {
+    const cId = document.getElementById('college').value
+    document.getElementById('fgProg').style.display=document.getElementById('fgYear').style.display='none'
+    if (!cId) return
+    try {
+      const d = await api.get('/api/hierarchy/programmes?collegeId='+cId)
+      const progs = d.programmes||[]
+      if (progs.length) {
+        document.getElementById('programme').innerHTML = '<option value="">Select programme...</option>' +
+          progs.map(p=>`<option value="${p.id}" data-dur="${p.duration||4}">${p.name}</option>`).join('')
+        document.getElementById('fgProg').style.display='block'
+      }
+    } catch {}
+  }
+
+  function onProgChange() {
+    const sel = document.getElementById('programme')
+    const opt = sel.options[sel.selectedIndex]
+    _progDur = parseInt(opt?.dataset?.dur||'4')
+    const suf=['st','nd','rd','th']
+    document.getElementById('yearOfStudy').innerHTML = '<option value="">Select year</option>' +
+      Array.from({length:_progDur},(_,i)=>`<option value="${i+1}">${i+1}${suf[Math.min(i,3)]} Year</option>`).join('')
+    document.getElementById('fgYear').style.display = sel.value ? 'block' : 'none'
+  }
+
+  function toggleRegPwd(id) {
+    const el = document.getElementById(id)
+    el.type = el.type === 'password' ? 'text' : 'password'
+  }
+
+  function checkPwdStrength() {
+    const pwd = document.getElementById('password').value
+    const bar = document.getElementById('pwdStrengthBar')
+    const fill = document.getElementById('pwdStrengthFill')
+    const label = document.getElementById('pwdStrengthLabel')
+    if (!pwd) { bar.style.display='none'; label.textContent=''; return }
+    bar.style.display='block'
+    let score = 0
+    if (pwd.length >= 6)  score++
+    if (pwd.length >= 10) score++
+    if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score++
+    if (/[0-9]/.test(pwd)) score++
+    if (/[^A-Za-z0-9]/.test(pwd)) score++
+    const levels = [
+      { pct:'20%', color:'#ef4444', text:'Very weak' },
+      { pct:'40%', color:'#f97316', text:'Weak' },
+      { pct:'60%', color:'#eab308', text:'Fair' },
+      { pct:'80%', color:'#22c55e', text:'Good' },
+      { pct:'100%', color:'#16a34a', text:'Strong' },
+    ]
+    const lv = levels[Math.min(score - 1, 4)] || levels[0]
+    fill.style.width = lv.pct; fill.style.background = lv.color
+    label.textContent = lv.text; label.style.color = lv.color
+    checkPwdMatch()
+  }
+
+  function checkPwdMatch() {
+    const pwd = document.getElementById('password').value
+    const cpwd = document.getElementById('confirmPassword').value
+    const msg = document.getElementById('pwdMatchMsg')
+    if (!cpwd) { msg.textContent=''; return }
+    if (pwd === cpwd) {
+      msg.textContent = '✓ Passwords match'; msg.style.color = '#16a34a'
+    } else {
+      msg.textContent = '✗ Passwords do not match'; msg.style.color = '#ef4444'
+    }
+  }
+
+  document.getElementById('regForm').addEventListener('submit', async e => {
+    e.preventDefault()
+    const btn=document.getElementById('submitBtn'), err=document.getElementById('errBox')
+
+    // ── Client-side validation ──
+    const firstName = document.getElementById('firstName').value.trim()
+    const lastName  = document.getElementById('lastName').value.trim()
+    const email     = document.getElementById('email').value.trim()
+    const uni       = document.getElementById('university').value
+    const pwd       = document.getElementById('password').value
+    const cpwd      = document.getElementById('confirmPassword').value
+
+    function showErr(msg) {
+      err.textContent = msg; err.classList.remove('hidden')
+      err.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+
+    if (!firstName) return showErr('Please enter your first name.')
+    if (!lastName)  return showErr('Please enter your last name.')
+    if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) return showErr('Please enter a valid email address.')
+    if (!uni)       return showErr('Please select your university.')
+    if (pwd.length < 6)  return showErr('Password must be at least 6 characters.')
+    if (pwd !== cpwd)    return showErr('Passwords do not match. Please re-enter.')
+
+    err.classList.add('hidden'); btn.disabled=true; btn.textContent='Creating account...'
+    try {
+      const d = await api.post('/api/auth/register', {
+        firstName,
+        lastName,
+        email,
+        university:  uni,
+        faculty:     document.getElementById('faculty')?.value||'',
+        programmeId: document.getElementById('programme')?.value||undefined,
+        yearOfStudy: Number(document.getElementById('yearOfStudy')?.value)||undefined,
+        password:    pwd,
+      })
+      localStorage.setItem('token', d.token)
+      localStorage.setItem('user',  JSON.stringify(d.user))
+      window.location.href='/pages/dashboard.html'
+    } catch (ex) {
+      err.textContent=ex.message; err.classList.remove('hidden')
+      btn.disabled=false; btn.textContent='Create free account →'
+    }
+  })
+</script>
+</body>
+</html>

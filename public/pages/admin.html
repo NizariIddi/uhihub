@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin Panel — UniHub Tanzania</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <style>
+    .admin-wrap { max-width:1200px; }
+    /* Tabs */
+    .tabs { display:flex; gap:0; border-bottom:2px solid var(--border); margin-bottom:2rem; flex-wrap:wrap; }
+    .tab { padding:.65rem 1.25rem; font-size:.875rem; font-weight:500; cursor:pointer; border:none; background:none; color:var(--ink-muted); border-bottom:2px solid transparent; margin-bottom:-2px; transition:all .15s; font-family:inherit; }
+    .tab:hover { color:var(--ink); }
+    .tab.active { color:var(--gold); border-bottom-color:var(--gold); }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+    /* Stat cards */
+    .stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; margin-bottom:2rem; }
+    .astat { background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:1.25rem; text-align:center; }
+    .astat-num { font-family:'Playfair Display',serif; font-size:2.2rem; font-weight:700; color:var(--gold); display:block; }
+    .astat-lbl { font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-muted); }
+    .astat-sub { font-size:.75rem; color:var(--green); margin-top:.2rem; }
+    /* Table */
+    .tbl-wrap { background:var(--card-bg); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+    .tbl-toolbar { padding:.9rem 1.25rem; display:flex; align-items:center; gap:.75rem; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+    .tbl-toolbar h3 { font-size:1rem; font-weight:600; margin:0; flex:1; }
+    table { width:100%; border-collapse:collapse; }
+    th { padding:.7rem 1rem; text-align:left; font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-muted); background:var(--surface); border-bottom:1px solid var(--border); white-space:nowrap; }
+    td { padding:.75rem 1rem; font-size:.875rem; border-bottom:1px solid var(--border); vertical-align:middle; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:var(--surface); }
+    .badge-admin { background:var(--badge-blue-bg); color:var(--badge-blue-fg); font-size:.72rem; padding:.18rem .55rem; border-radius:20px; font-weight:500; }
+    .badge-user  { background:var(--badge-neutral-bg); color:var(--badge-neutral-fg); font-size:.72rem; padding:.18rem .55rem; border-radius:20px; }
+    .del-btn { background:none; border:1px solid var(--badge-red-fg); color:var(--badge-red-fg); border-radius:4px; padding:.25rem .6rem; font-size:.78rem; cursor:pointer; font-family:inherit; }
+    .del-btn:hover { background:var(--badge-red-bg); }
+    .prm-btn { background:none; border:1px solid var(--border); color:var(--ink-muted); border-radius:4px; padding:.25rem .6rem; font-size:.78rem; cursor:pointer; font-family:inherit; white-space:nowrap; }
+    .prm-btn:hover { background:var(--gold-pale); color:var(--ink); border-color:var(--gold); }
+    .tbl-empty { padding:3rem; text-align:center; color:var(--ink-muted); }
+    .pagination { display:flex; align-items:center; gap:.5rem; padding:.75rem 1.25rem; border-top:1px solid var(--border); font-size:.83rem; }
+    .pg-btn { background:none; border:1px solid var(--border); border-radius:4px; padding:.25rem .65rem; cursor:pointer; font-family:inherit; font-size:.8rem; }
+    .pg-btn:disabled { opacity:.4; cursor:not-allowed; }
+    .pg-btn:not(:disabled):hover { background:var(--gold-pale); }
+    /* Internship form */
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; margin-bottom:1rem; }
+    @media(max-width:640px){ .form-grid{grid-template-columns:1fr} }
+    .toggle-switch { display:flex; align-items:center; gap:.5rem; font-size:.85rem; }
+    .toggle-switch input[type=checkbox]{ width:18px; height:18px; cursor:pointer; }
+  </style>
+</head>
+<body>
+<div id="topbarMount"></div>
+<div class="layout">
+  <div id="sidebarMount"></div>
+  <main class="main">
+    <div class="admin-wrap">
+      <div class="page-header">
+        <div class="label">Admin</div>
+        <h1 class="page-title">Admin Panel</h1>
+        <p style="color:var(--ink-muted);font-size:.875rem;margin-top:.25rem">Manage all platform content and users.</p>
+      </div>
+
+      <!-- Stats -->
+      <div class="stat-grid" id="adminStats">
+        <div class="astat"><span class="astat-num">—</span><span class="astat-lbl">Users</span></div>
+        <div class="astat"><span class="astat-num">—</span><span class="astat-lbl">Exams</span></div>
+        <div class="astat"><span class="astat-num">—</span><span class="astat-lbl">Notes</span></div>
+        <div class="astat"><span class="astat-num">—</span><span class="astat-lbl">Internships</span></div>
+        <div class="astat"><span class="astat-num">—</span><span class="astat-lbl">AI uses</span></div>
+        <div class="astat"><span class="astat-num">—</span><span class="astat-lbl">New this week</span></div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" onclick="showTab('users')">👥 Users</button>
+        <button class="tab" onclick="showTab('exams')">📄 Exams</button>
+        <button class="tab" onclick="showTab('notes')">📝 Notes</button>
+        <button class="tab" onclick="showTab('jobs')">💼 Internships</button>
+        <button class="tab" onclick="showTab('structure')">🏛️ Academic Structure</button>
+        <button class="tab" onclick="showTab('reports')">🚩 Reports</button>
+        <button class="tab" onclick="showTab('analytics')">📊 Analytics</button>
+      </div>
+
+      <!-- Users tab -->
+      <div class="tab-panel active" id="tab-users">
+        <div class="tbl-wrap">
+          <div class="tbl-toolbar">
+            <h3>Users</h3>
+            <input class="input" type="text" id="userSearch" placeholder="Search by name or email..." style="width:260px" oninput="debouncedLoadUsers()"/>
+          </div>
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>University</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
+            <tbody id="usersTbody"><tr><td colspan="6" class="tbl-empty">Loading...</td></tr></tbody>
+          </table>
+          <div class="pagination" id="usersPag"></div>
+        </div>
+      </div>
+
+      <!-- Exams tab -->
+      <div class="tab-panel" id="tab-exams">
+        <div class="tbl-wrap">
+          <div class="tbl-toolbar">
+            <h3>Exam Papers</h3>
+            <input class="input" type="text" id="examSearch" placeholder="Search exams..." style="width:220px" oninput="debouncedLoadExams()"/>
+            <select class="input" id="examUniFilter" style="width:160px" onchange="loadAdminExams()"></select>
+          </div>
+          <table>
+            <thead><tr><th>Course</th><th>Code</th><th>University</th><th>Year</th><th>Downloads</th><th>Uploaded by</th><th>Actions</th></tr></thead>
+            <tbody id="examsTbody"><tr><td colspan="7" class="tbl-empty">Loading...</td></tr></tbody>
+          </table>
+          <div class="pagination" id="examsPag"></div>
+        </div>
+      </div>
+
+      <!-- Notes tab -->
+      <div class="tab-panel" id="tab-notes">
+        <div class="tbl-wrap">
+          <div class="tbl-toolbar">
+            <h3>Student Notes</h3>
+            <input class="input" type="text" id="noteSearch" placeholder="Search notes..." style="width:220px" oninput="debouncedLoadNotes()"/>
+            <select class="input" id="noteUniFilter" style="width:160px" onchange="loadAdminNotes()"></select>
+          </div>
+          <table>
+            <thead><tr><th>Title</th><th>University</th><th>Code</th><th>Downloads</th><th>Uploaded by</th><th>Actions</th></tr></thead>
+            <tbody id="notesTbody"><tr><td colspan="6" class="tbl-empty">Loading...</td></tr></tbody>
+          </table>
+          <div class="pagination" id="notesPag"></div>
+        </div>
+      </div>
+
+      <!-- Jobs tab -->
+      <div class="tab-panel" id="tab-jobs">
+        <div class="tbl-wrap">
+          <div class="tbl-toolbar">
+            <h3>Internships</h3>
+            <input class="input" type="text" id="jobSearch" placeholder="Search jobs..." style="width:220px" oninput="debouncedLoadJobs()"/>
+            <button class="btn btn-gold btn-sm" onclick="openJobModal()">+ Add internship</button>
+          </div>
+          <table>
+            <thead><tr><th>Title</th><th>Company</th><th>Location</th><th>Industry</th><th>Type</th><th>Paid</th><th>Active</th><th>Actions</th></tr></thead>
+          <tbody id="jobsTbody"><tr><td colspan="8" class="tbl-empty">Loading...</td></tr></tbody>
+          </table>
+          <div class="pagination" id="jobsPag"></div>
+        </div>
+      </div>
+
+      <!-- Academic Structure tab -->
+      <div class="tab-panel" id="tab-structure">
+        <div style="display:grid;grid-template-columns:340px 1fr;gap:1.5rem;align-items:flex-start">
+
+          <!-- Left: tree navigator -->
+          <div>
+            <!-- University selector -->
+            <div class="tbl-wrap" style="margin-bottom:1rem">
+              <div class="tbl-toolbar" style="justify-content:space-between">
+                <h3 style="font-size:.9rem">Universities</h3>
+                <button class="btn btn-gold btn-sm" onclick="openUniModal()">+ Add</button>
+              </div>
+              <div id="structUniList" style="max-height:220px;overflow-y:auto">
+                <div class="tbl-empty">Loading...</div>
+              </div>
+            </div>
+
+            <!-- Colleges under selected university -->
+            <div class="tbl-wrap" id="structCollegeBox" style="display:none;margin-bottom:1rem">
+              <div class="tbl-toolbar" style="justify-content:space-between">
+                <h3 style="font-size:.9rem">Colleges <span id="structCollegeUni" style="color:var(--gold);font-weight:400"></span></h3>
+                <button class="btn btn-gold btn-sm" onclick="openCollegeModal()">+ Add</button>
+              </div>
+              <div id="structCollegeList" style="max-height:220px;overflow-y:auto"></div>
+            </div>
+
+            <!-- Programmes under selected college -->
+            <div class="tbl-wrap" id="structProgBox" style="display:none;margin-bottom:1rem">
+              <div class="tbl-toolbar" style="justify-content:space-between">
+                <h3 style="font-size:.9rem">Programmes <span id="structProgCollege" style="color:var(--gold);font-weight:400"></span></h3>
+                <button class="btn btn-gold btn-sm" onclick="openProgModal()">+ Add</button>
+              </div>
+              <div id="structProgList" style="max-height:220px;overflow-y:auto"></div>
+            </div>
+          </div>
+
+          <!-- Right: modules + topics for selected programme -->
+          <div id="structRightPanel">
+            <div class="tbl-empty" style="padding:4rem;text-align:center;color:var(--ink-muted)">
+              <div style="font-size:2.5rem;margin-bottom:.75rem">🏛️</div>
+              <div>Select a university → college → programme<br>to manage its modules and topics</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Reports tab -->
+      <div class="tab-panel" id="tab-reports">
+        <div class="tbl-wrap">
+          <div class="tbl-toolbar">
+            <h3>Content Reports</h3>
+            <select class="input" id="reportFilter" style="width:160px" onchange="loadAdminReports()">
+              <option value="PENDING">Pending</option>
+              <option value="REVIEWED">Reviewed</option>
+              <option value="RESOLVED">Resolved</option>
+              <option value="DISMISSED">Dismissed</option>
+              <option value="all">All</option>
+            </select>
+          </div>
+          <table>
+            <thead><tr><th>Type</th><th>Reason</th><th>Details</th><th>Reporter</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody id="reportsTbody"><tr><td colspan="7" class="tbl-empty">Select a tab to load reports</td></tr></tbody>
+          </table>
+          <div class="pagination" id="reportsPag"></div>
+        </div>
+      </div>
+
+      <!-- Analytics tab -->
+      <div class="tab-panel" id="tab-analytics">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+          <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem">
+            <div style="font-size:.9rem;font-weight:600;margin-bottom:1rem">📈 Signups (last 30 days)</div>
+            <canvas id="signupChart" height="180"></canvas>
+          </div>
+          <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem">
+            <div style="font-size:.9rem;font-weight:600;margin-bottom:1rem">📤 Exam uploads (last 30 days)</div>
+            <canvas id="uploadChart" height="180"></canvas>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+          <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem">
+            <div style="font-size:.9rem;font-weight:600;margin-bottom:1rem">🏛 Exams by university</div>
+            <canvas id="uniChart" height="220"></canvas>
+          </div>
+          <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem">
+            <div style="font-size:.9rem;font-weight:600;margin-bottom:1rem">🏆 Most downloaded exams</div>
+            <div id="topExamsList" style="font-size:.85rem"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Job modal -->
+<div class="modal-overlay hidden" id="jobModal">
+  <div class="modal" style="max-width:600px;max-height:90vh;overflow-y:auto">
+    <h2 class="modal-title" id="jobModalTitle">Add internship</h2>
+    <div id="jobErr" class="alert alert-error hidden" style="margin-bottom:1rem"></div>
+    <form id="jobForm">
+      <input type="hidden" id="jobId"/>
+      <div class="form-grid">
+        <div><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Title *</label><input class="input" type="text" id="jTitle" required/></div>
+        <div><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Company *</label><input class="input" type="text" id="jCompany" required/></div>
+      </div>
+      <div class="form-grid">
+        <div><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Location *</label><input class="input" type="text" id="jLocation" required/></div>
+        <div>
+          <label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Industry *</label>
+          <select class="input" id="jIndustry" required>
+            <option value="">Select</option>
+            <option value="banking">Banking & Finance</option>
+            <option value="government">Government</option>
+            <option value="infrastructure">Infrastructure</option>
+            <option value="telecommunications">Telecommunications</option>
+            <option value="health">Health</option>
+            <option value="education">Education</option>
+            <option value="technology">Technology</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div>
+          <label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Type</label>
+          <select class="input" id="jType">
+            <option value="internship">Internship</option>
+            <option value="graduate">Graduate trainee</option>
+            <option value="part-time">Part-time</option>
+          </select>
+        </div>
+        <div><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Salary</label><input class="input" type="text" id="jSalary" placeholder="e.g. TZS 300,000/month"/></div>
+      </div>
+      <div style="margin-bottom:1rem"><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Contact email</label><input class="input" type="email" id="jEmail" placeholder="hr@company.co.tz"/></div>
+      <div style="margin-bottom:1rem"><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Description *</label><textarea class="input" id="jDesc" rows="3" required></textarea></div>
+      <div style="margin-bottom:1rem"><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Requirements</label><textarea class="input" id="jReq" rows="2"></textarea></div>
+      <div style="display:flex;gap:1.5rem;margin-bottom:1.5rem">
+        <label class="toggle-switch"><input type="checkbox" id="jPaid"/> Paid position</label>
+        <label class="toggle-switch"><input type="checkbox" id="jActive" checked/> Active listing</label>
+      </div>
+      <div style="display:flex;gap:.75rem">
+        <button type="submit" class="btn btn-primary" style="flex:1" id="jobSaveBtn">Save</button>
+        <button type="button" class="btn btn-secondary" style="flex:1" onclick="closeJobModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/js/utils.js"></script>
+<script>
+  let usersPage=1, examsPage=1, notesPage=1, jobsPage=1
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const user = requireAuth()
+    if (!user) return
+    if (!user.isAdmin) { window.location.href = '/pages/dashboard.html'; return }
+    renderLayout('admin'); initSidebar()
+
+    // Populate uni filters
+    document.getElementById('examUniFilter').innerHTML = uniOptions('All universities')
+    document.getElementById('noteUniFilter').innerHTML = uniOptions('All universities')
+
+    await Promise.all([loadStats(), loadAdminUsers()])
+
+  })
+
+  function showTab(name) {
+    document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['users','exams','notes','jobs'][i]===name))
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'))
+    document.getElementById(`tab-${name}`).classList.add('active')
+    if (name==='exams')    loadAdminExams()
+    if (name==='notes')    loadAdminNotes()
+    if (name==='jobs')     loadAdminJobs()
+  }
+
+  async function loadStats() {
+    try {
+      const s = await api.get('/api/admin/stats')
+      const cards = document.querySelectorAll('#adminStats .astat')
+      const vals = [
+        { num: s.users,       lbl: 'Users',        sub: `+${s.newUsers} this week` },
+        { num: s.exams,       lbl: 'Exams' },
+        { num: s.notes,       lbl: 'Notes' },
+        { num: s.internships, lbl: 'Internships' },
+        { num: s.aiUsage,     lbl: 'AI uses' },
+        { num: s.newUsers,    lbl: 'New this week' },
+      ]
+      vals.forEach((v, i) => {
+        if (!cards[i]) return
+        cards[i].querySelector('.astat-num').textContent = v.num
+        cards[i].querySelector('.astat-lbl').textContent = v.lbl
+        if (v.sub) {
+          let sub = cards[i].querySelector('.astat-sub')
+          if (!sub) { sub = document.createElement('div'); sub.className='astat-sub'; cards[i].appendChild(sub) }
+          sub.textContent = v.sub
+        }
+      })
+    } catch (e) { console.error(e) }
+  }
+
+  // ── Users ─────────────────────────────────────────────────
+  const debouncedLoadUsers = debounce(() => { usersPage=1; loadAdminUsers() }, 300)
+
+  async function loadAdminUsers() {
+    const q = document.getElementById('userSearch')?.value?.trim() || ''
+    try {
+      const d = await api.get(`/api/admin/users?search=${encodeURIComponent(q)}&page=${usersPage}`)
+      const tbody = document.getElementById('usersTbody')
+      if (!d.users.length) { tbody.innerHTML='<tr><td colspan="6" class="tbl-empty">No users found</td></tr>'; return }
+      tbody.innerHTML = d.users.map(u => `
+        <tr>
+          <td><div style="font-weight:500">${esc(u.firstName)} ${esc(u.lastName)}</div></td>
+          <td style="color:var(--ink-muted);font-size:.82rem">${esc(u.email)}</td>
+          <td>${esc((UNIS[u.university]||u.university||'').toUpperCase())}</td>
+          <td><span class="${u.isAdmin?'badge-admin':'badge-user'}">${u.isAdmin?'Admin':'User'}</span></td>
+          <td style="color:var(--ink-muted);font-size:.8rem">${new Date(u.createdAt||u.created_at).toLocaleDateString()}</td>
+          <td style="display:flex;gap:.4rem;flex-wrap:wrap">
+            <button class="prm-btn" onclick="toggleAdmin('${u.id}',${!u.isAdmin})">${u.isAdmin?'Remove admin':'Make admin'}</button>
+            <button class="del-btn" onclick="delUser('${u.id}','${esc(u.firstName+' '+u.lastName)}')">Delete</button>
+          </td>
+        </tr>`).join('')
+      renderPagination('usersPag', usersPage, d.pages, p => { usersPage=p; loadAdminUsers() })
+    } catch (e) { document.getElementById('usersTbody').innerHTML=`<tr><td colspan="6" class="tbl-empty" style="color:var(--red)">${esc(e.message)}</td></tr>` }
+  }
+
+  async function toggleAdmin(id, makeAdmin) {
+    if (!confirm(`${makeAdmin?'Grant':'Remove'} admin for this user?`)) return
+    try {
+      await api.patch(`/api/admin/users/${id}`, { isAdmin: makeAdmin })
+      toast(makeAdmin ? 'Admin granted!' : 'Admin removed!')
+      loadAdminUsers()
+    } catch (e) { toast(e.message, 'error') }
+  }
+  async function delUser(id, name) {
+    if (!confirm(`Delete user "${name}"? This cannot be undone.`)) return
+    try { await api.delete(`/api/admin/users/${id}`); toast('User deleted.'); loadAdminUsers() }
+    catch (e) { toast(e.message, 'error') }
+  }
+
+  // ── Exams ─────────────────────────────────────────────────
+  const debouncedLoadExams = debounce(() => { examsPage=1; loadAdminExams() }, 300)
+
+  async function loadAdminExams() {
+    const q = document.getElementById('examSearch')?.value?.trim() || ''
+    const u = document.getElementById('examUniFilter')?.value || ''
+    try {
+      const d = await api.get(`/api/admin/exams?search=${encodeURIComponent(q)}&university=${u}&page=${examsPage}`)
+      const tbody = document.getElementById('examsTbody')
+      if (!d.exams.length) { tbody.innerHTML='<tr><td colspan="7" class="tbl-empty">No exams found</td></tr>'; return }
+      tbody.innerHTML = d.exams.map(e => `
+        <tr>
+          <td><div style="font-weight:500">${esc(e.courseName)}</div></td>
+          <td style="color:var(--ink-muted);font-size:.82rem">${esc(e.courseCode||'—')}</td>
+          <td>${esc((UNIS[e.university]||e.university||'').toUpperCase())}</td>
+          <td>${e.year}</td>
+          <td>${e.downloadCount||0}</td>
+          <td style="font-size:.82rem;color:var(--ink-muted)">${e.uploadedBy?esc(e.uploadedBy.firstName+' '+e.uploadedBy.lastName):'—'}</td>
+          <td><button class="del-btn" onclick="delExam('${e.id}','${esc(e.courseName)}')">Delete</button></td>
+        </tr>`).join('')
+      renderPagination('examsPag', examsPage, d.pages, p => { examsPage=p; loadAdminExams() })
+    } catch (e) { document.getElementById('examsTbody').innerHTML=`<tr><td colspan="7" class="tbl-empty" style="color:var(--red)">${esc(e.message)}</td></tr>` }
+  }
+  async function delExam(id, name) {
+    if (!confirm(`Delete exam "${name}"? The PDF file will also be deleted.`)) return
+    try { await api.delete(`/api/admin/exams/${id}`); toast('Exam deleted.'); loadAdminExams(); loadStats() }
+    catch (e) { toast(e.message, 'error') }
+  }
+
+  // ── Notes ─────────────────────────────────────────────────
+  const debouncedLoadNotes = debounce(() => { notesPage=1; loadAdminNotes() }, 300)
+
+  async function loadAdminNotes() {
+    const q = document.getElementById('noteSearch')?.value?.trim() || ''
+    const u = document.getElementById('noteUniFilter')?.value || ''
+    try {
+      const d = await api.get(`/api/admin/notes?search=${encodeURIComponent(q)}&university=${u}&page=${notesPage}`)
+      const tbody = document.getElementById('notesTbody')
+      if (!d.notes.length) { tbody.innerHTML='<tr><td colspan="6" class="tbl-empty">No notes found</td></tr>'; return }
+      tbody.innerHTML = d.notes.map(n => `
+        <tr>
+          <td><div style="font-weight:500">${esc(n.title)}</div></td>
+          <td>${esc((UNIS[n.university]||n.university||'').toUpperCase())}</td>
+          <td style="color:var(--ink-muted);font-size:.82rem">${esc(n.courseCode||'—')}</td>
+          <td>${n.downloadCount||0}</td>
+          <td style="font-size:.82rem;color:var(--ink-muted)">${n.uploadedBy?esc(n.uploadedBy.firstName+' '+n.uploadedBy.lastName):'—'}</td>
+          <td><button class="del-btn" onclick="delNote('${n.id}','${esc(n.title)}')">Delete</button></td>
+        </tr>`).join('')
+      renderPagination('notesPag', notesPage, d.pages, p => { notesPage=p; loadAdminNotes() })
+    } catch (e) { document.getElementById('notesTbody').innerHTML=`<tr><td colspan="6" class="tbl-empty" style="color:var(--red)">${esc(e.message)}</td></tr>` }
+  }
+  async function delNote(id, name) {
+    if (!confirm(`Delete note "${name}"? The PDF file will also be deleted.`)) return
+    try { await api.delete(`/api/admin/notes/${id}`); toast('Note deleted.'); loadAdminNotes(); loadStats() }
+    catch (e) { toast(e.message, 'error') }
+  }
+
+  // ── Jobs ──────────────────────────────────────────────────
+  const debouncedLoadJobs = debounce(() => { jobsPage=1; loadAdminJobs() }, 300)
+
+  async function loadAdminJobs() {
+    const q = document.getElementById('jobSearch')?.value?.trim() || ''
+    try {
+      const d = await api.get(`/api/admin/internships?search=${encodeURIComponent(q)}&page=${jobsPage}`)
+      const tbody = document.getElementById('jobsTbody')
+      if (!d.internships.length) { tbody.innerHTML='<tr><td colspan="8" class="tbl-empty">No internships found</td></tr>'; return }
+      tbody.innerHTML = d.internships.map(i => `
+        <tr>
+          <td><div style="font-weight:500">${esc(i.title)}</div></td>
+          <td>${esc(i.company)}</td>
+          <td style="font-size:.82rem;color:var(--ink-muted)">${esc(i.location)}</td>
+          <td>${esc(i.industry)}</td>
+          <td><span class="badge badge-gold" style="font-size:.7rem">${esc(i.type)}</span></td>
+          <td>${i.isPaid?'<span style="color:var(--green);font-size:.8rem">✓</span>':'<span style="color:var(--ink-muted);font-size:.8rem">—</span>'}</td>
+          <td>${i.isActive?'<span style="color:var(--green);font-size:.8rem">✓</span>':'<span style="color:var(--red);font-size:.8rem">✗</span>'}</td>
+          <td style="display:flex;gap:.4rem">
+            <button class="prm-btn" onclick='editJob(${JSON.stringify(i).replace(/'/g,"&#39;")})'>Edit</button>
+            <button class="del-btn" onclick="delJob('${i.id}','${esc(i.title)}')">Delete</button>
+          </td>
+        </tr>`).join('')
+      renderPagination('jobsPag', jobsPage, d.pages, p => { jobsPage=p; loadAdminJobs() })
+    } catch (e) { document.getElementById('jobsTbody').innerHTML=`<tr><td colspan="8" class="tbl-empty" style="color:var(--red)">${esc(e.message)}</td></tr>` }
+  }
+
+  function openJobModal(job) {
+    document.getElementById('jobModalTitle').textContent = job ? 'Edit internship' : 'Add internship'
+    document.getElementById('jobId').value      = job?.id || ''
+    document.getElementById('jTitle').value     = job?.title || ''
+    document.getElementById('jCompany').value   = job?.company || ''
+    document.getElementById('jLocation').value  = job?.location || ''
+    document.getElementById('jIndustry').value  = job?.industry || ''
+    document.getElementById('jType').value      = job?.type || 'internship'
+    document.getElementById('jSalary').value    = job?.salary || ''
+    document.getElementById('jEmail').value     = job?.contactEmail || ''
+    document.getElementById('jDesc').value      = job?.description || ''
+    document.getElementById('jReq').value       = job?.requirements || ''
+    document.getElementById('jPaid').checked    = job?.isPaid || false
+    document.getElementById('jActive').checked  = job ? (job.isActive !== false) : true
+    document.getElementById('jobErr').classList.add('hidden')
+    document.getElementById('jobModal').classList.remove('hidden')
+  }
+  function editJob(job)  { openJobModal(job) }
+  function closeJobModal(){ document.getElementById('jobModal').classList.add('hidden') }
+
+  document.getElementById('jobForm').addEventListener('submit', async e => {
+    e.preventDefault()
+    const btn = document.getElementById('jobSaveBtn')
+    const err = document.getElementById('jobErr')
+    err.classList.add('hidden')
+    btn.disabled = true; btn.textContent = 'Saving...'
+    const id = document.getElementById('jobId').value
+    const body = {
+      title: document.getElementById('jTitle').value, company: document.getElementById('jCompany').value,
+      location: document.getElementById('jLocation').value, industry: document.getElementById('jIndustry').value,
+      type: document.getElementById('jType').value, salary: document.getElementById('jSalary').value,
+      contactEmail: document.getElementById('jEmail').value, description: document.getElementById('jDesc').value,
+      requirements: document.getElementById('jReq').value, isPaid: document.getElementById('jPaid').checked,
+      isActive: document.getElementById('jActive').checked,
+    }
+    try {
+      if (id) await api.put(`/api/admin/internships/${id}`, body)
+      else    await api.post('/api/admin/internships', body)
+      toast(id ? 'Internship updated!' : 'Internship added!')
+      closeJobModal()
+      loadAdminJobs(); loadStats()
+    } catch (ex) { err.textContent = ex.message; err.classList.remove('hidden') }
+    btn.disabled = false; btn.textContent = 'Save'
+  })
+
+  async function delJob(id, name) {
+    if (!confirm(`Delete internship "${name}"?`)) return
+    try { await api.delete(`/api/admin/internships/${id}`); toast('Deleted.'); loadAdminJobs(); loadStats() }
+    catch (e) { toast(e.message, 'error') }
+  }
+
+  // ── Pagination helper ──────────────────────────────────────
+  function renderPagination(containerId, current, total, onPage) {
+    const el = document.getElementById(containerId)
+    if (total <= 1) { el.innerHTML = ''; return }
+    el.innerHTML = `
+      <button class="pg-btn" onclick="(${onPage.toString()})(${current-1})" ${current<=1?'disabled':''}>← Prev</button>
+      <span style="color:var(--ink-muted)">Page ${current} of ${total}</span>
+      <button class="pg-btn" onclick="(${onPage.toString()})(${current+1})" ${current>=total?'disabled':''}>Next →</button>`
+  }
+
+  // ── Reports ───────────────────────────────────────────────
+  const debouncedLoadReports = debounce(() => { loadAdminReports() }, 300)
+  let reportsPage = 1
+
+  async function loadAdminReports() {
+    const status = document.getElementById('reportFilter')?.value || 'PENDING'
+    try {
+      const d = await api.get(`/api/reports?status=${status}&page=${reportsPage}`)
+      const tbody = document.getElementById('reportsTbody')
+      if (!d.reports.length) { tbody.innerHTML='<tr><td colspan="7" class="tbl-empty">No reports found</td></tr>'; return }
+      tbody.innerHTML = d.reports.map(r => `
+        <tr>
+          <td><span class="badge badge-gold" style="font-size:.7rem">${esc(r.resourceType)}</span></td>
+          <td style="font-size:.82rem">${esc(r.reason.replace('_',' '))}</td>
+          <td style="font-size:.8rem;color:var(--ink-muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.details||'—')}</td>
+          <td style="font-size:.82rem">${r.reporter?esc(r.reporter.firstName+' '+r.reporter.lastName):'—'}</td>
+          <td><span class="badge" style="font-size:.7rem;background:${r.status==='PENDING'?'var(--badge-yellow-bg)':r.status==='RESOLVED'?'var(--badge-green-bg)':'var(--badge-neutral-bg)'};color:${r.status==='PENDING'?'var(--badge-yellow-fg)':r.status==='RESOLVED'?'var(--badge-green-fg)':'var(--badge-neutral-fg)'}">${r.status}</span></td>
+          <td style="font-size:.78rem;color:var(--ink-muted)">${new Date(r.createdAt||r.created_at).toLocaleDateString()}</td>
+          <td style="display:flex;gap:.35rem;flex-wrap:wrap">
+            ${r.status==='PENDING'?`
+              <button class="prm-btn" onclick="resolveReport('${r.id}','RESOLVED')">Resolve</button>
+              <button class="prm-btn" onclick="resolveReport('${r.id}','DISMISSED')">Dismiss</button>
+            `:'<span style="font-size:.78rem;color:var(--ink-muted)">Done</span>'}
+          </td>
+        </tr>`).join('')
+      renderPagination('reportsPag', reportsPage, d.pages, p => { reportsPage=p; loadAdminReports() })
+    } catch(e) { document.getElementById('reportsTbody').innerHTML=`<tr><td colspan="7" class="tbl-empty" style="color:var(--red)">${esc(e.message)}</td></tr>` }
+  }
+
+  async function resolveReport(id, status) {
+    try { await api.patch(`/api/reports/${id}`, { status }); toast(status==='RESOLVED'?'Marked resolved':'Dismissed'); loadAdminReports() }
+    catch(e) { toast(e.message,'error') }
+  }
+
+  // ── Analytics ─────────────────────────────────────────────
+  let chartsLoaded = false
+  async function loadAnalytics() {
+    if (chartsLoaded) return
+    chartsLoaded = true
+    try {
+      const d = await api.get('/api/admin/analytics')
+      // Load Chart.js from CDN
+      const script = document.createElement('script')
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js'
+      script.onload = () => renderCharts(d)
+      document.head.appendChild(script)
+    } catch(e) { console.error('Analytics error:', e.message) }
+  }
+
+  function renderCharts(d) {
+    const opts = { responsive:true, plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.05)'}}} }
+
+    // Signups chart
+    new Chart(document.getElementById('signupChart'), {
+      type:'bar',
+      data:{ labels: d.signups.map(r=>r.date?.slice(5)), datasets:[{ data: d.signups.map(r=>r.count), backgroundColor:'rgba(201,150,12,0.7)', borderRadius:4 }] },
+      options: { ...opts, plugins:{...opts.plugins} }
+    })
+
+    // Upload chart
+    new Chart(document.getElementById('uploadChart'), {
+      type:'line',
+      data:{ labels: d.examUploads.map(r=>r.date?.slice(5)), datasets:[{ data: d.examUploads.map(r=>r.count), borderColor:'#C9960C', backgroundColor:'rgba(201,150,12,0.1)', fill:true, tension:.4 }] },
+      options: { ...opts }
+    })
+
+    // University pie
+    const UNIMAP = { udsm:'UDSM', udom:'UDOM', ardhi:'Ardhi', muhas:'MUHAS', out:'OUT', sua:'SUA', mzumbe:'Mzumbe', ifm:'IFM', cbe:'CBE', jordan:'Jordan', saut:'SAUT' }
+    new Chart(document.getElementById('uniChart'), {
+      type:'doughnut',
+      data:{
+        labels: d.byUniversity.map(r => UNIMAP[r.university]||r.university||'Other'),
+        datasets:[{ data: d.byUniversity.map(r=>r.count), backgroundColor:['#C9960C','#F5C842','#EF9F27','#1A1208','#6B6455','#3A2E1A','#FAEEDA','#F5D97A','#EF9F27','#C9960C','#1A1208'] }]
+      },
+      options:{ responsive:true, plugins:{ legend:{ position:'right', labels:{font:{size:11}} } } }
+    })
+
+    // Top exams list
+    const tel = document.getElementById('topExamsList')
+    if (!d.topExams?.length) { tel.innerHTML='<p style="color:var(--ink-muted)">No downloads yet.</p>'; return }
+    tel.innerHTML = d.topExams.map((e,i) => `
+      <div style="display:flex;align-items:center;gap:.75rem;padding:.55rem 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:.9rem;font-weight:700;color:var(--gold);width:20px">${i+1}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.course_name)}</div>
+          <div style="font-size:.75rem;color:var(--ink-muted)">${esc((e.university||'').toUpperCase())} · ${e.year}</div>
+        </div>
+        <span style="font-size:.78rem;color:var(--ink-muted);flex-shrink:0">⬇ ${e.download_count}</span>
+      </div>`).join('')
+  }
+
+  // ── Featured toggle from admin exams/notes tables ─────────
+  async function toggleFeatured(type, id, btn) {
+    try {
+      const d = await api.patch(`/api/admin/${type}s/${id}/featured`)
+      btn.textContent = d.isFeatured ? '⭐ Featured' : 'Feature'
+      btn.style.background = d.isFeatured ? 'var(--gold-pale)' : ''
+      toast(d.isFeatured ? 'Marked as featured!' : 'Removed from featured')
+    } catch(e) { toast(e.message,'error') }
+  }
+
+
+  // ── showTab patch for all lazy tabs ──────────────────────
+  const _origShowTab = showTab
+  showTab = function(name) {
+    _origShowTab(name)
+    if (name==='analytics') loadAnalytics()
+    if (name==='reports')   loadAdminReports()
+    if (name==='structure') loadStructureUnis()
+  }
+
+  // ── Academic Structure ────────────────────────────────────
+  const ST = { university: null, uniName: '', college: null, colName: '', programme: null, progName: '' }
+
+  const UNI_LIST = [
+    {key:'udsm',name:'University of Dar es Salaam (UDSM)'},
+    {key:'udom',name:'University of Dodoma (UDOM)'},
+    {key:'ardhi',name:'Ardhi University'},
+    {key:'muhas',name:'Muhimbili University (MUHAS)'},
+    {key:'out',name:'Open University of Tanzania (OUT)'},
+    {key:'sua',name:'Sokoine University (SUA)'},
+    {key:'mzumbe',name:'Mzumbe University'},
+    {key:'ifm',name:'Institute of Finance Management (IFM)'},
+    {key:'cbe',name:'College of Business Education (CBE)'},
+    {key:'jordan',name:'Jordan University College'},
+    {key:'saut',name:'St. Augustine University (SAUT)'},
+    {key:'other',name:'Other'},
+  ]
+
+  function loadStructureUnis() {
+    const el = document.getElementById('structUniList')
+    el.innerHTML = UNI_LIST.map(u => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:.55rem 1rem;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;${ST.university===u.key?'background:var(--gold-pale);':''}"
+           onmouseover="this.style.background='var(--gold-pale)'" onmouseout="this.style.background='${ST.university===u.key?'var(--gold-pale)':''}'"
+           onclick="selectStructUni('${u.key}','${u.name.replace(/'/g,"\'").replace(/"/g,'&quot;')}')">
+        <div>
+          <div style="font-size:.85rem;font-weight:${ST.university===u.key?'600':'400'};color:${ST.university===u.key?'var(--ink)':'var(--ink-muted)'}">${esc(u.name)}</div>
+        </div>
+        <span style="color:var(--gold);font-size:.7rem">›</span>
+      </div>`).join('')
+  }
+
+  async function selectStructUni(key, name) {
+    ST.university=key; ST.uniName=name; ST.college=null; ST.colName=''; ST.programme=null; ST.progName=''
+    loadStructureUnis()
+    document.getElementById('structCollegeUni').textContent = '— '+key.toUpperCase()
+    document.getElementById('structCollegeBox').style.display = 'block'
+    document.getElementById('structProgBox').style.display = 'none'
+    document.getElementById('structRightPanel').innerHTML = '<div class="tbl-empty" style="padding:3rem;text-align:center;color:var(--ink-muted)">Select a college to see its programmes</div>'
+    await loadStructColleges()
+  }
+
+  async function loadStructColleges() {
+    const el = document.getElementById('structCollegeList')
+    el.innerHTML = '<div class="tbl-empty" style="padding:1rem">Loading...</div>'
+    try {
+      const d = await api.get('/api/hierarchy/colleges?university='+ST.university)
+      const cols = d.colleges||[]
+      if (!cols.length) { el.innerHTML='<div class="tbl-empty" style="padding:1.5rem;font-size:.82rem">No colleges yet. Click + Add to create one.</div>'; return }
+      el.innerHTML = cols.map(c => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:.55rem 1rem;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;${ST.college===c.id?'background:var(--gold-pale);':''}"
+             onmouseover="this.style.background='var(--gold-pale)'" onmouseout="this.style.background='${ST.college===c.id?'var(--gold-pale)':''}'"
+             onclick="selectStructCollege('${c.id}','${esc(c.name).replace(/'/g,"\'")}','${c.icon||''}')">
+          <div>
+            <div style="font-size:.85rem;font-weight:${ST.college===c.id?'600':'400'};color:var(--ink)">${c.icon||''} ${esc(c.name)}</div>
+            <div style="font-size:.72rem;color:var(--ink-muted)">${c.shortName||''}</div>
+          </div>
+          <div style="display:flex;gap:.35rem;align-items:center" onclick="event.stopPropagation()">
+            <button class="prm-btn" style="font-size:.7rem;padding:.2rem .45rem" onclick="openCollegeModal({id:'${c.id}',name:'${esc(c.name).replace(/'/g,"\'")}',shortName:'${c.shortName||''}',icon:'${c.icon||''}',description:'${c.description||''}'})">Edit</button>
+            <button class="del-btn" style="font-size:.7rem;padding:.2rem .45rem" onclick="delCollege('${c.id}','${esc(c.name).replace(/'/g,"\'")}')">✕</button>
+          </div>
+        </div>`).join('')
+    } catch(e) { el.innerHTML=`<div class="tbl-empty" style="color:var(--red);padding:1rem">${esc(e.message)}</div>` }
+  }
+
+  async function selectStructCollege(id, name, icon) {
+    ST.college=id; ST.colName=name; ST.programme=null; ST.progName=''
+    await loadStructColleges()
+    document.getElementById('structProgCollege').textContent = '— '+name
+    document.getElementById('structProgBox').style.display='block'
+    document.getElementById('structRightPanel').innerHTML='<div class="tbl-empty" style="padding:3rem;text-align:center;color:var(--ink-muted)">Select a programme to manage its modules</div>'
+    await loadStructProgs()
+  }
+
+  async function loadStructProgs() {
+    const el = document.getElementById('structProgList')
+    el.innerHTML = '<div class="tbl-empty" style="padding:1rem">Loading...</div>'
+    try {
+      const d = await api.get('/api/hierarchy/programmes?collegeId='+ST.college)
+      const progs = d.programmes||[]
+      if (!progs.length) { el.innerHTML='<div class="tbl-empty" style="padding:1.5rem;font-size:.82rem">No programmes yet. Click + Add.</div>'; return }
+      el.innerHTML = progs.map(p => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:.55rem 1rem;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;${ST.programme===p.id?'background:var(--gold-pale);':''}"
+             onmouseover="this.style.background='var(--gold-pale)'" onmouseout="this.style.background='${ST.programme===p.id?'var(--gold-pale)':''}'"
+             onclick="selectStructProg('${p.id}','${esc(p.name).replace(/'/g,"\'")}')">
+          <div>
+            <div style="font-size:.85rem;font-weight:${ST.programme===p.id?'600':'400'};color:var(--ink)">${esc(p.name)}</div>
+            <div style="font-size:.72rem;color:var(--ink-muted)">${p.code||''} · ${p.duration||3}y · ${p.degreeLevel}</div>
+          </div>
+          <div style="display:flex;gap:.35rem;align-items:center" onclick="event.stopPropagation()">
+            <button class="prm-btn" style="font-size:.7rem;padding:.2rem .45rem" onclick="openProgModal({id:'${p.id}',name:'${esc(p.name).replace(/'/g,"\'")}',code:'${p.code||''}',duration:${p.duration||3},degreeLevel:'${p.degreeLevel}'})">Edit</button>
+            <button class="del-btn" style="font-size:.7rem;padding:.2rem .45rem" onclick="delProg('${p.id}','${esc(p.name).replace(/'/g,"\'")}')">✕</button>
+          </div>
+        </div>`).join('')
+    } catch(e) { el.innerHTML=`<div class="tbl-empty" style="color:var(--red);padding:1rem">${esc(e.message)}</div>` }
+  }
+
+  async function selectStructProg(id, name) {
+    ST.programme=id; ST.progName=name
+    await loadStructProgs()
+    await loadStructModules()
+  }
+
+  async function loadStructModules() {
+    const panel = document.getElementById('structRightPanel')
+    panel.innerHTML = `
+      <div class="tbl-wrap">
+        <div class="tbl-toolbar" style="justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+          <div>
+            <h3 style="font-size:.95rem;margin:0">${esc(ST.progName)}</h3>
+            <div style="font-size:.75rem;color:var(--ink-muted);margin-top:.1rem">${esc(ST.colName)} · ${esc(ST.uniName)}</div>
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="openModuleModal()">+ Add module</button>
+        </div>
+        <div id="structModuleBody"><div class="tbl-empty">Loading modules...</div></div>
+      </div>`
+    await refreshModules()
+  }
+
+  async function refreshModules() {
+    const el = document.getElementById('structModuleBody')
+    if (!el) return
+    try {
+      const d = await api.get('/api/hierarchy/modules?programmeId='+ST.programme)
+      const mods = d.modules||[]
+      if (!mods.length) { el.innerHTML='<div class="tbl-empty">No modules yet. Click + Add module above.</div>'; return }
+
+      const byYear = {}
+      mods.forEach(m => (byYear[m.yearOfStudy]=byYear[m.yearOfStudy]||[]).push(m))
+      const SUF = ['','st','nd','rd','th']
+      const SEM_LABEL = {'1':'Semester 1','2':'Semester 2','full-year':'Full Year'}
+
+      let html = ''
+      Object.entries(byYear).sort(([a],[b])=>Number(a)-Number(b)).forEach(([yr,yMods])=>{
+        html += `<div style="padding:.5rem 1rem .25rem;font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);background:var(--surface);border-bottom:1px solid var(--border)">Year ${yr}${SUF[Number(yr)]||'th'} — ${yMods.length} module${yMods.length!==1?'s':''}</div>`
+        const bySem = {}
+        yMods.forEach(m => (bySem[m.semester]=bySem[m.semester]||[]).push(m))
+        Object.entries(bySem).sort().forEach(([sem,sMods])=>{
+          html += `<div style="padding:.3rem 1rem .2rem 1.5rem;font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);background:var(--gold-pale);border-bottom:1px solid var(--border)">${SEM_LABEL[sem]||sem} — ${sMods.length} module${sMods.length!==1?'s':''}</div>`
+          sMods.forEach(m=>{
+            const ename = esc(m.name).replace(/'/g,"\'").replace(/"/g,'&quot;')
+            html += `<div style="border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;justify-content:space-between;padding:.7rem 1rem .7rem 2rem;gap:.5rem;flex-wrap:wrap"><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap"><span style="font-size:.72rem;background:var(--gold-pale);color:var(--gold);padding:.15rem .5rem;border-radius:20px;font-weight:700">${esc(m.code)}</span><span style="font-size:.82rem;font-weight:500;color:var(--ink)">${esc(m.name)}</span><span style="font-size:.7rem;background:${m.isCore?'var(--badge-green-bg)':'var(--badge-neutral-bg)'};color:${m.isCore?'var(--badge-green-fg)':'var(--badge-neutral-fg)'};padding:.12rem .45rem;border-radius:20px">${m.isCore?'Core':'Elective'}</span></div><div style="font-size:.72rem;color:var(--ink-muted);margin-top:.2rem">${m.credits||0} credits · ${(m.topics||[]).length} topics</div></div><div style="display:flex;gap:.35rem;flex-shrink:0"><button class="prm-btn" style="font-size:.72rem;padding:.25rem .5rem" onclick="openTopicsPanel('${m.id}','${ename}',this)">Topics</button><button class="prm-btn" style="font-size:.72rem;padding:.25rem .5rem" onclick="openModuleModal(${JSON.stringify(m).replace(/"/g,'&quot;')})">Edit</button><button class="del-btn" style="font-size:.72rem;padding:.25rem .5rem" onclick="delModule('${m.id}','${ename}')">✕</button></div></div><div id="topics-${m.id}" style="display:none;background:var(--surface);padding:.75rem 1rem 1rem;border-top:1px solid var(--border)"></div></div>`
+          })
+        })
+      })
+      el.innerHTML = html
+    } catch(e) { el.innerHTML=`<div class="tbl-empty" style="color:var(--red)">${esc(e.message)}</div>` }
+  }
+
+  async function openTopicsPanel(moduleId, modName, btn) {
+    const panel = document.getElementById('topics-'+moduleId)
+    if (panel.style.display === 'block') { panel.style.display='none'; btn.textContent='Topics'; return }
+    panel.style.display='block'; btn.textContent='Hide'
+    panel.innerHTML = '<div style="color:var(--ink-muted);font-size:.82rem">Loading topics...</div>'
+    try {
+      const d = await api.get('/api/hierarchy/modules/'+moduleId)
+      const topics = d.module?.topics||[]
+      panel.innerHTML = `
+        <div style="font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:.6rem">Topics for ${esc(modName)}</div>
+        <div id="topicList-${moduleId}">
+          ${topics.length ? topics.map((t,i)=>`
+            <div style="display:flex;align-items:center;gap:.5rem;padding:.3rem 0;border-bottom:1px solid var(--border)">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0"></span>
+              <span style="font-size:.82rem;flex:1;color:var(--ink)">${esc(t.name)}</span>
+              <button class="del-btn" style="font-size:.68rem;padding:.15rem .4rem" onclick="delTopic('${t.id}','${moduleId}')">✕</button>
+            </div>`).join('') : '<div style="font-size:.8rem;color:var(--ink-muted);padding:.5rem 0">No topics yet.</div>'}
+        </div>
+        <div style="display:flex;gap:.5rem;margin-top:.75rem">
+          <input class="input" type="text" id="newTopic-${moduleId}" placeholder="New topic name..." style="flex:1;font-size:.82rem;padding:.4rem .65rem"/>
+          <button class="btn btn-gold btn-sm" onclick="addTopic('${moduleId}')">Add</button>
+        </div>`
+    } catch(e) { panel.innerHTML=`<div style="color:var(--red);font-size:.82rem">${esc(e.message)}</div>` }
+  }
+
+  async function addTopic(moduleId) {
+    const inp = document.getElementById('newTopic-'+moduleId)
+    const name = inp?.value?.trim()
+    if (!name) { toast('Enter a topic name', 'error'); return }
+    try {
+      await api.post('/api/hierarchy/topics', { name, moduleId })
+      toast('Topic added!')
+      inp.value = ''
+      // refresh the topics panel
+      const btn = document.querySelector(`[onclick*="openTopicsPanel('${moduleId}'"]`)
+      await openTopicsPanel(moduleId, '', { textContent:'' })
+      document.getElementById('topics-'+moduleId).style.display='block'
+    } catch(e) { toast(e.message,'error') }
+  }
+
+  async function delTopic(id, moduleId) {
+    if (!confirm('Delete this topic?')) return
+    try {
+      await api.delete('/api/hierarchy/topics/'+id)
+      toast('Topic deleted.')
+      // Re-render topic list
+      const d = await api.get('/api/hierarchy/modules/'+moduleId)
+      const topics = d.module?.topics||[]
+      const el = document.getElementById('topicList-'+moduleId)
+      if (el) el.innerHTML = topics.length ? topics.map(t=>`
+        <div style="display:flex;align-items:center;gap:.5rem;padding:.3rem 0;border-bottom:1px solid var(--border)">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0"></span>
+          <span style="font-size:.82rem;flex:1;color:var(--ink)">${esc(t.name)}</span>
+          <button class="del-btn" style="font-size:.68rem;padding:.15rem .4rem" onclick="delTopic('${t.id}','${moduleId}')">✕</button>
+        </div>`).join('') : '<div style="font-size:.8rem;color:var(--ink-muted);padding:.5rem 0">No topics.</div>'
+    } catch(e) { toast(e.message,'error') }
+  }
+
+  async function delCollege(id, name) {
+    if (!confirm(`Delete college "${name}" and ALL its programmes and modules? This cannot be undone.`)) return
+    try { await api.delete('/api/hierarchy/colleges/'+id); toast('College deleted.'); await loadStructColleges() }
+    catch(e) { toast(e.message,'error') }
+  }
+  async function delProg(id, name) {
+    if (!confirm(`Delete programme "${name}" and all its modules?`)) return
+    try { await api.delete('/api/hierarchy/programmes/'+id); toast('Programme deleted.'); await loadStructProgs() }
+    catch(e) { toast(e.message,'error') }
+  }
+  async function delModule(id, name) {
+    if (!confirm(`Delete module "${name}"?`)) return
+    try { await api.delete('/api/hierarchy/modules/'+id); toast('Module deleted.'); await refreshModules() }
+    catch(e) { toast(e.message,'error') }
+  }
+
+  // ── College modal ──────────────────────────────────────────
+  function openCollegeModal(col) {
+    document.getElementById('colModalTitle').textContent = col ? 'Edit college' : 'Add college'
+    document.getElementById('colId').value   = col?.id||''
+    document.getElementById('colName').value = col?.name||''
+    document.getElementById('colShort').value= col?.shortName||''
+    document.getElementById('colIcon').value = col?.icon||''
+    document.getElementById('colDesc').value = col?.description||''
+    document.getElementById('colErr').classList.add('hidden')
+    document.getElementById('colModal').classList.remove('hidden')
+  }
+  function closeCollegeModal(){ document.getElementById('colModal').classList.add('hidden') }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('colForm').addEventListener('submit', async e => {
+      e.preventDefault()
+      const btn=document.getElementById('colSaveBtn'), err=document.getElementById('colErr')
+      err.classList.add('hidden'); btn.disabled=true; btn.textContent='Saving...'
+      const id = document.getElementById('colId').value
+      const body = { name:document.getElementById('colName').value, shortName:document.getElementById('colShort').value,
+        icon:document.getElementById('colIcon').value, description:document.getElementById('colDesc').value, university:ST.university }
+      try {
+        if (id) await api.put('/api/hierarchy/colleges/'+id, body)
+        else    await api.post('/api/hierarchy/colleges', body)
+        toast(id?'College updated!':'College added!'); closeCollegeModal(); await loadStructColleges()
+      } catch(ex){ err.textContent=ex.message; err.classList.remove('hidden') }
+      btn.disabled=false; btn.textContent='Save'
+    })
+
+    // ── Programme modal ──
+    document.getElementById('progForm').addEventListener('submit', async e => {
+      e.preventDefault()
+      const btn=document.getElementById('progSaveBtn'), err=document.getElementById('progErr')
+      err.classList.add('hidden'); btn.disabled=true; btn.textContent='Saving...'
+      const id = document.getElementById('progId').value
+      const body = { name:document.getElementById('progName').value, code:document.getElementById('progCode').value,
+        duration:Number(document.getElementById('progDur').value)||3, degreeLevel:document.getElementById('progLevel').value,
+        description:document.getElementById('progDesc').value, collegeId:ST.college }
+      try {
+        if (id) await api.put('/api/hierarchy/programmes/'+id, body)
+        else    await api.post('/api/hierarchy/programmes', body)
+        toast(id?'Programme updated!':'Programme added!'); closeProgModal(); await loadStructProgs()
+      } catch(ex){ err.textContent=ex.message; err.classList.remove('hidden') }
+      btn.disabled=false; btn.textContent='Save'
+    })
+
+    // ── Module modal ──
+    document.getElementById('modForm').addEventListener('submit', async e => {
+      e.preventDefault()
+      const btn=document.getElementById('modSaveBtn'), err=document.getElementById('modErr')
+      err.classList.add('hidden'); btn.disabled=true; btn.textContent='Saving...'
+      const id = document.getElementById('modId').value
+      const body = { name:document.getElementById('modName').value, code:document.getElementById('modCode').value,
+        yearOfStudy:Number(document.getElementById('modYear').value), semester:document.getElementById('modSem').value,
+        credits:Number(document.getElementById('modCredits').value)||null, isCore:document.getElementById('modCore').checked,
+        description:document.getElementById('modDesc').value, programmeId:ST.programme }
+      try {
+        if (id) await api.put('/api/hierarchy/modules/'+id, body)
+        else    await api.post('/api/hierarchy/modules', body)
+        toast(id?'Module updated!':'Module added!'); closeModModal(); await refreshModules()
+      } catch(ex){ err.textContent=ex.message; err.classList.remove('hidden') }
+      btn.disabled=false; btn.textContent='Save'
+    })
+  })
+
+  function openProgModal(prog) {
+    document.getElementById('progModalTitle').textContent = prog ? 'Edit programme' : 'Add programme'
+    document.getElementById('progId').value    = prog?.id||''
+    document.getElementById('progName').value  = prog?.name||''
+    document.getElementById('progCode').value  = prog?.code||''
+    document.getElementById('progDur').value   = prog?.duration||3
+    document.getElementById('progLevel').value = prog?.degreeLevel||'bachelor'
+    document.getElementById('progDesc').value  = prog?.description||''
+    document.getElementById('progErr').classList.add('hidden')
+    document.getElementById('progModal').classList.remove('hidden')
+  }
+  function closeProgModal(){ document.getElementById('progModal').classList.add('hidden') }
+
+  function openModuleModal(mod) {
+    mod = typeof mod === 'string' ? JSON.parse(mod) : mod
+    document.getElementById('modModalTitle').textContent = mod ? 'Edit module' : 'Add module'
+    document.getElementById('modId').value      = mod?.id||''
+    document.getElementById('modName').value    = mod?.name||''
+    document.getElementById('modCode').value    = mod?.code||''
+    document.getElementById('modYear').value    = mod?.yearOfStudy||1
+    document.getElementById('modSem').value     = mod?.semester||'1'
+    document.getElementById('modCredits').value = mod?.credits||''
+    document.getElementById('modCore').checked  = mod ? (mod.isCore!==false) : true
+    document.getElementById('modDesc').value    = mod?.description||''
+    document.getElementById('modErr').classList.add('hidden')
+    document.getElementById('modModal').classList.remove('hidden')
+  }
+  function closeModModal(){ document.getElementById('modModal').classList.add('hidden') }
+
+  function openUniModal() {
+    toast('Universities are pre-defined in the system. Select one from the list to add colleges to it.', 'error')
+  }
+</script>
+
+<!-- College modal -->
+<div class="modal-overlay hidden" id="colModal">
+  <div class="modal" style="max-width:460px">
+    <h2 class="modal-title" id="colModalTitle">Add college</h2>
+    <div id="colErr" class="alert alert-error hidden" style="margin-bottom:1rem"></div>
+    <form id="colForm">
+      <input type="hidden" id="colId"/>
+      <div style="margin-bottom:1rem"><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">College name *</label><input class="input" id="colName" placeholder="e.g. College of Engineering and Technology" required/></div>
+      <div class="form-grid">
+        <div><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Short name</label><input class="input" id="colShort" placeholder="e.g. CoET"/></div>
+        <div><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Icon (emoji)</label><input class="input" id="colIcon" placeholder="e.g. ⚙️" maxlength="4"/></div>
+      </div>
+      <div style="margin-bottom:1.25rem"><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Description</label><textarea class="input" id="colDesc" rows="2" placeholder="Brief description..."></textarea></div>
+      <div style="display:flex;gap:.75rem">
+        <button type="submit" class="btn btn-primary" style="flex:1" id="colSaveBtn">Save</button>
+        <button type="button" class="btn btn-secondary" style="flex:1" onclick="closeCollegeModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Programme modal -->
+<div class="modal-overlay hidden" id="progModal">
+  <div class="modal" style="max-width:460px">
+    <h2 class="modal-title" id="progModalTitle">Add programme</h2>
+    <div id="progErr" class="alert alert-error hidden" style="margin-bottom:1rem"></div>
+    <form id="progForm">
+      <input type="hidden" id="progId"/>
+      <div style="margin-bottom:1rem"><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Programme name *</label><input class="input" id="progName" placeholder="e.g. BSc Computer Science" required/></div>
+      <div class="form-grid">
+        <div><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Code</label><input class="input" id="progCode" placeholder="e.g. BSc CS"/></div>
+        <div><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Duration (years)</label><input class="input" type="number" id="progDur" value="3" min="1" max="7"/></div>
+      </div>
+      <div style="margin-bottom:1rem"><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Degree level</label>
+        <select class="input" id="progLevel">
+          <option value="certificate">Certificate</option>
+          <option value="diploma">Diploma</option>
+          <option value="bachelor" selected>Bachelor</option>
+          <option value="masters">Masters</option>
+          <option value="phd">PhD</option>
+        </select>
+      </div>
+      <div style="margin-bottom:1.25rem"><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Description</label><textarea class="input" id="progDesc" rows="2" placeholder="Brief description..."></textarea></div>
+      <div style="display:flex;gap:.75rem">
+        <button type="submit" class="btn btn-primary" style="flex:1" id="progSaveBtn">Save</button>
+        <button type="button" class="btn btn-secondary" style="flex:1" onclick="closeProgModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Module modal -->
+<div class="modal-overlay hidden" id="modModal">
+  <div class="modal" style="max-width:500px">
+    <h2 class="modal-title" id="modModalTitle">Add module</h2>
+    <div id="modErr" class="alert alert-error hidden" style="margin-bottom:1rem"></div>
+    <form id="modForm">
+      <input type="hidden" id="modId"/>
+      <div style="margin-bottom:1rem"><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Module name *</label><input class="input" id="modName" placeholder="e.g. Database Management Systems" required/></div>
+      <div class="form-grid">
+        <div><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Module code *</label><input class="input" id="modCode" placeholder="e.g. CS301" required/></div>
+        <div><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Credits</label><input class="input" type="number" id="modCredits" placeholder="e.g. 3" min="1" max="12"/></div>
+      </div>
+      <div class="form-grid">
+        <div><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Year of study *</label>
+          <select class="input" id="modYear" required>
+            <option value="1">Year 1</option><option value="2">Year 2</option>
+            <option value="3">Year 3</option><option value="4">Year 4</option>
+            <option value="5">Year 5</option>
+          </select>
+        </div>
+        <div><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Semester</label>
+          <select class="input" id="modSem">
+            <option value="1">Semester 1</option>
+            <option value="2">Semester 2</option>
+            <option value="full-year">Full year</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:1rem"><label style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem">Description</label><textarea class="input" id="modDesc" rows="2" placeholder="Brief description..."></textarea></div>
+      <div style="margin-bottom:1.25rem"><label class="toggle-switch"><input type="checkbox" id="modCore" checked/> Core module (required for programme)</label></div>
+      <div style="display:flex;gap:.75rem">
+        <button type="submit" class="btn btn-primary" style="flex:1" id="modSaveBtn">Save</button>
+        <button type="button" class="btn btn-secondary" style="flex:1" onclick="closeModModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+</body>
+</html>

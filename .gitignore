@@ -1,0 +1,17 @@
+# API keys & secrets
+*.txt
+.env
+.env.*
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Uploads (user files, don't push to GitHub)
+backend/uploads/*
+!backend/uploads/exams/.keep
+!backend/uploads/notes/.keep
+
+# OS
+.DS_Store
+Thumbs.db

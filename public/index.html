@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="canonical" href="https://unihub.neezar9i.site/" />
+  <title>UniHub Tanzania — Study Smarter. Succeed Together.</title>
+<meta name="google-site-verification" content="k2SglL-8LJWsLz19V7dvfNRZHFptMt9sYRqKg2H44nE" />
+  <link rel="stylesheet" href="/css/style.css"/>
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky; top: 0; z-index: 50;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 0 2rem; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    [data-theme="dark"] nav { background: #0D0B05; border-color: rgba(245,200,66,.1); }
+    .nav-logo { font-family:'Playfair Display',serif; font-size:1.45rem; font-weight:900; color:var(--ink); flex-shrink:0; }
+    .nav-logo span { color: var(--gold); }
+    .nav-center { display:flex; align-items:center; gap:2rem; list-style:none; }
+    .nav-center a { font-size:.875rem; color:var(--ink-muted); transition:color .15s; }
+    .nav-center a:hover { color:var(--ink); }
+    .nav-right { display:flex; align-items:center; gap:.6rem; }
+    .theme-toggle {
+      background:none; border:none; cursor:pointer; font-size:1rem;
+      padding:.3rem .45rem; border-radius:6px; color:var(--ink-muted); transition:color .15s;
+    }
+    .theme-toggle:hover { color: var(--ink); }
+    .nav-mobile-btn {
+      display:none; background:none; border:none; cursor:pointer; padding:.3rem; color:var(--ink-muted);
+    }
+    @media(max-width:640px) {
+      nav { padding: 0 1.25rem; }
+      .nav-center { display:none; }
+      .nav-center.open {
+        display:flex; flex-direction:column; align-items:flex-start; gap:0;
+        position:absolute; top:60px; left:0; right:0;
+        background:var(--surface); border-bottom:1px solid var(--border);
+        padding:.75rem 1.25rem; z-index:49;
+      }
+      .nav-center.open li { padding:.55rem 0; width:100%; border-bottom:1px solid var(--border-soft); }
+      .nav-center.open li:last-child { border:none; }
+      .nav-mobile-btn { display:block; }
+    }
+
+    /* ── Hero ── */
+    .hero {
+      max-width: 780px; margin: 0 auto;
+      padding: 5rem 2rem 4.5rem;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      display:inline-block; font-size:.68rem; font-weight:600;
+      letter-spacing:.15em; text-transform:uppercase;
+      color:var(--gold); border:1px solid var(--gold);
+      padding:.28rem .95rem; border-radius:2px; margin-bottom:1.5rem;
+    }
+    .hero h1 {
+      font-family:'Playfair Display',serif;
+      font-size: clamp(2.2rem, 6vw, 3.75rem);
+      font-weight:900; color:var(--ink); line-height:1.1;
+      letter-spacing:-1px; margin-bottom:1.25rem;
+    }
+    .hero h1 em { font-style:italic; color:var(--gold); }
+    .hero p {
+      font-size:1rem; color:var(--ink-muted); font-weight:300;
+      max-width:480px; margin:0 auto 2.5rem; line-height:1.7;
+    }
+    .hero-btns { display:flex; gap:.85rem; justify-content:center; flex-wrap:wrap; }
+    @media(max-width:480px) {
+      .hero { padding: 3.5rem 1.25rem 3rem; }
+      .hero h1 { font-size: 2rem; letter-spacing:-.5px; }
+      .hero p { font-size: .9rem; }
+      .hero-btns { flex-direction:column; align-items:stretch; gap:.6rem; }
+      .hero-btns .btn { text-align:center; }
+    }
+
+    /* ── Stats bar ── */
+    .stats-bar {
+      display:flex; flex-wrap:wrap; justify-content:center; gap:0;
+      border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+    }
+    [data-theme="dark"] .stats-bar { border-color: rgba(245,200,66,.1); }
+    .stat-item {
+      flex:1; min-width:140px; text-align:center;
+      padding:1.75rem 1rem;
+      border-right:1px solid var(--border);
+    }
+    [data-theme="dark"] .stat-item { border-color: rgba(245,200,66,.1); }
+    .stat-item:last-child { border-right:none; }
+    .stat-item strong {
+      display:block; font-family:'Playfair Display',serif;
+      font-size:2rem; font-weight:700; color:var(--gold);
+    }
+    .stat-item span { font-size:.7rem; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-muted); }
+    @media(max-width:640px) {
+      .stat-item { min-width:calc(50% - 1px); border-bottom:1px solid var(--border); }
+      .stat-item:nth-child(even) { border-right:none; }
+      [data-theme="dark"] .stat-item { border-color: rgba(245,200,66,.1); }
+    }
+    @media(max-width:360px) {
+      .stat-item { min-width:100%; border-right:none; }
+    }
+
+    /* ── Section labels ── */
+    .section-label {
+      font-size:.68rem; font-weight:600; letter-spacing:.14em;
+      text-transform:uppercase; color:var(--gold);
+    }
+    .section-title {
+      font-family:'Playfair Display',serif;
+      font-size: clamp(1.5rem, 4vw, 2.1rem);
+      font-weight:700; color:var(--ink);
+      margin:.5rem 0 0; line-height:1.25;
+    }
+
+    /* ── Features ── */
+    .features { max-width:1100px; margin:0 auto; padding:5rem 2rem; }
+    .features-grid {
+      display:grid; grid-template-columns:repeat(3,1fr);
+      gap:1px; background:var(--border);
+      border:1px solid var(--border); margin-top:3rem;
+      overflow:hidden; border-radius:10px;
+    }
+    [data-theme="dark"] .features-grid { background:rgba(245,200,66,.07); border-color:rgba(245,200,66,.1); }
+    .feature-box {
+      background:var(--surface); padding:2rem 1.75rem; transition:background .18s;
+    }
+    .feature-box:hover { background:var(--gold-pale); }
+    [data-theme="dark"] .feature-box { background:#1C1A12; }
+    [data-theme="dark"] .feature-box:hover { background:#2a2310; }
+    .feature-icon {
+      width:40px; height:40px; background:var(--gold-pale);
+      border:1px solid rgba(201,150,12,.3); border-radius:6px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.1rem; margin-bottom:1rem;
+    }
+    .feature-box h3 {
+      font-family:'Playfair Display',serif; font-size:.97rem;
+      font-weight:700; margin-bottom:.45rem; color:var(--ink);
+    }
+    [data-theme="dark"] .feature-box h3 { color:#F5F0E8; }
+    .feature-box p { font-size:.83rem; color:var(--ink-muted); font-weight:300; line-height:1.65; }
+    @media(max-width:800px) { .features-grid { grid-template-columns:repeat(2,1fr); } }
+    @media(max-width:520px) {
+      .features { padding: 3.5rem 1.25rem; }
+      .features-grid { grid-template-columns:1fr; }
+      .feature-box { padding:1.5rem 1.25rem; }
+    }
+
+    /* ── Universities ── */
+    .unis-section {
+      background:var(--ink); padding:4.5rem 2rem; text-align:center;
+    }
+    .unis-section .section-label { color:#F5D97A; }
+    .unis-section .section-title { color:rgba(245,240,232,.92); margin-bottom:2rem; }
+    .uni-grid {
+      display:flex; flex-wrap:wrap; gap:.55rem;
+      justify-content:center; max-width:720px; margin:0 auto;
+    }
+    .uni-tag {
+      border:1px solid rgba(201,150,12,.4); color:#F5D97A;
+      padding:.35rem 1rem; border-radius:3px; font-size:.8rem;
+      transition:all .15s;
+    }
+    .uni-tag:hover { background:rgba(201,150,12,.12); border-color:var(--gold); }
+    @media(max-width:480px) {
+      .unis-section { padding: 3rem 1.25rem; }
+    }
+
+    /* ── How it works ── */
+    .how-section { max-width:900px; margin:0 auto; padding:5rem 2rem; }
+    .steps-grid {
+      display:grid; grid-template-columns:repeat(3,1fr);
+      gap:2rem; margin-top:3rem;
+    }
+    .step { text-align:center; }
+    .step-num {
+      width:44px; height:44px; background:var(--gold-pale);
+      border:2px solid var(--gold); border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Playfair Display',serif; font-size:1.1rem;
+      font-weight:700; color:var(--gold); margin:0 auto 1rem;
+    }
+    .step h3 { font-family:'Playfair Display',serif; font-size:.97rem; font-weight:700; color:var(--ink); margin-bottom:.4rem; }
+    .step p { font-size:.83rem; color:var(--ink-muted); line-height:1.65; font-weight:300; }
+    @media(max-width:640px) {
+      .how-section { padding: 3.5rem 1.25rem; }
+      .steps-grid { grid-template-columns:1fr; gap:1.5rem; }
+      .step { display:flex; gap:1.1rem; text-align:left; }
+      .step-num { flex-shrink:0; margin:0; }
+    }
+
+    /* ── CTA ── */
+    .cta-section {
+      text-align:center; padding:5rem 2rem;
+      border-top:1px solid var(--border);
+      background:var(--surface-2);
+    }
+    [data-theme="dark"] .cta-section { background:#111008; border-color:rgba(245,200,66,.1); }
+    .cta-section h2 {
+      font-family:'Playfair Display',serif;
+      font-size: clamp(1.75rem, 5vw, 2.75rem);
+      font-weight:900; letter-spacing:-1px; margin-bottom:.75rem;
+    }
+    .cta-section h2 em { color:var(--gold); font-style:italic; }
+    .cta-section p { color:var(--ink-muted); font-weight:300; margin-bottom:2rem; max-width:480px; margin-left:auto; margin-right:auto; }
+    .cta-btns { display:flex; gap:.85rem; justify-content:center; flex-wrap:wrap; }
+    @media(max-width:480px) {
+      .cta-section { padding: 3.5rem 1.25rem; }
+      .cta-btns { flex-direction:column; align-items:stretch; }
+      .cta-btns .btn { text-align:center; }
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top:1px solid var(--border);
+      padding:1.5rem 2rem;
+      display:flex; flex-wrap:wrap; gap:.75rem 2rem;
+      align-items:center; justify-content:space-between;
+      background:var(--surface);
+    }
+    [data-theme="dark"] footer { background:#0D0B05; border-color:rgba(245,200,66,.1); }
+    footer span { font-size:.78rem; color:var(--ink-muted); }
+    .footer-logo { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:900; color:var(--ink); }
+    .footer-logo span { color:var(--gold); }
+    @media(max-width:480px) {
+      footer { padding:1.25rem; flex-direction:column; align-items:flex-start; gap:.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Uni<span>Hub</span></div>
+  <ul class="nav-center" id="landingNav">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#universities">Universities</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="/pages/login.html" style="color:var(--ink-muted)">Sign in</a></li>
+    <li><a href="/pages/register.html" class="btn btn-primary btn-sm">Get started free</a></li>
+  </ul>
+  <div class="nav-right">
+    <button id="landingThemeBtn" class="theme-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">🌙</button>
+    <button class="nav-mobile-btn" onclick="document.getElementById('landingNav').classList.toggle('open')" title="Menu">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" d="M3 7h18M3 12h18M3 17h18"/></svg>
+    </button>
+  </div>
+</nav>
+<script src="/js/utils.js"></script>
+<script>
+  (function(){
+    const btn = document.getElementById('landingThemeBtn')
+    if (btn) btn.textContent = localStorage.getItem('theme')==='dark' ? '☀️' : '🌙'
+    const orig = window.updateThemeBtn
+    window.updateThemeBtn = function(){ if(orig)orig(); if(btn) btn.textContent = localStorage.getItem('theme')==='dark'?'☀️':'🌙' }
+  })()
+</script>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">For Tanzania university students</div>
+  <h1>Study smarter.<br/><em>Succeed</em> together.</h1>
+  <p>Past exams, AI-powered tutoring, shared notes, and internship opportunities — built for Tanzanian universities. 100% free.</p>
+  <div class="hero-btns">
+    <a href="/pages/register.html" class="btn btn-primary">Create free account →</a>
+    <a href="#features" class="btn btn-secondary">See how it works</a>
+  </div>
+</section>
+
+<!-- LIVE STATS -->
+<div class="stats-bar">
+  <div class="stat-item"><strong id="statUnis">12+</strong><span>Universities</span></div>
+  <div class="stat-item"><strong id="statExams">—</strong><span>Past papers</span></div>
+  <div class="stat-item"><strong id="statNotes">—</strong><span>Student notes</span></div>
+  <div class="stat-item"><strong id="statUsers">—</strong><span>Students registered</span></div>
+  <div class="stat-item"><strong>Free</strong><span>Always free</span></div>
+</div>
+<script>
+  fetch('/api/admin/public-stats')
+    .then(r => r.ok ? r.json() : null)
+    .then(d => {
+      if (!d) return
+      const fmt = n => n >= 1000 ? (n/1000).toFixed(1).replace('.0','')+'k+' : n+'+'
+      if (d.exams)       document.getElementById('statExams').textContent = fmt(d.exams)
+      if (d.notes)       document.getElementById('statNotes').textContent = fmt(d.notes)
+      if (d.users)       document.getElementById('statUsers').textContent = fmt(d.users)
+      if (d.universities) document.getElementById('statUnis').textContent = d.universities+'+'
+    }).catch(()=>{})
+</script>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="section-label">What we offer</div>
+  <h2 class="section-title">Everything a student needs<br/>to excel</h2>
+  <div class="features-grid">
+    <div class="feature-box">
+      <div class="feature-icon">📄</div>
+      <h3>Past exam library</h3>
+      <p>Thousands of past papers organised by university, faculty, course code, and year. Download or read in-browser.</p>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">🤖</div>
+      <h3>AI study tutor</h3>
+      <p>Ask any question and get a clear step-by-step answer in English or Swahili. The AI can read your exam PDF directly.</p>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">📝</div>
+      <h3>Student notes</h3>
+      <p>Upload your notes, download from top students. Request notes for courses where nothing is uploaded yet.</p>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">💼</div>
+      <h3>Internship board</h3>
+      <p>Curated opportunities from companies hiring Tanzanian graduates. Filter by industry, location, and type.</p>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">⭐</div>
+      <h3>Course reviews</h3>
+      <p>Anonymous ratings for courses and lecturers. Difficulty, teaching quality, and honest comments from real students.</p>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">🎓</div>
+      <h3>Academic browser</h3>
+      <p>Navigate your full academic structure — university → college → programme → module → topics — in one place.</p>
+    </div>
+  </div>
+</section>
+
+<!-- UNIVERSITIES -->
+<section class="unis-section" id="universities">
+  <div class="section-label">Supported institutions</div>
+  <h2 class="section-title">All major Tanzanian universities</h2>
+  <div class="uni-grid">
+    <span class="uni-tag">UDSM</span>
+    <span class="uni-tag">UDOM</span>
+    <span class="uni-tag">Ardhi University</span>
+    <span class="uni-tag">Muhimbili (MUHAS)</span>
+    <span class="uni-tag">Open University (OUT)</span>
+    <span class="uni-tag">Sokoine (SUA)</span>
+    <span class="uni-tag">Mzumbe University</span>
+    <span class="uni-tag">IFM</span>
+    <span class="uni-tag">CBE</span>
+    <span class="uni-tag">Jordan University</span>
+    <span class="uni-tag">St. Augustine (SAUT)</span>
+    <span class="uni-tag">+ more</span>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+  <div class="section-label">Simple to use</div>
+  <h2 class="section-title">Up and running in minutes</h2>
+  <div class="steps-grid">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div>
+        <h3>Create your account</h3>
+        <p>Sign up free with your university email. Choose your university, college, and programme.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div>
+        <h3>Find your exams</h3>
+        <p>Search by course name or code. Browse all past papers from your university in one place.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div>
+        <h3>Study with AI</h3>
+        <p>Open any exam, click "Read exam", then ask the AI to answer any question — in English or Swahili.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Built for <em>Tanzania.</em><br/>Made for you.</h2>
+  <p>Join students from UDSM, UDOM, MUHAS, Mzumbe and more — studying smarter together. No credit card. No catch. Free forever.</p>
+  <div class="cta-btns">
+    <a href="/pages/register.html" class="btn btn-primary">Create your free account →</a>
+    <a href="/pages/login.html" class="btn btn-secondary">Sign in</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Uni<span>Hub</span></div>
+  <span>Built in Tanzania, for Tanzania.</span>
+  <span>© 2026 UniHub Tanzania</span>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Search — UniHub Tanzania</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <style>
+    .search-header {
+      background: var(--ink);
+      padding: 1.75rem 2.5rem;
+      margin: -2.25rem -2.5rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    [data-theme="dark"] .search-header { background: #0D0B05; border-bottom: 1px solid rgba(245,200,66,.1); }
+    .search-header::after { content:''; position:absolute; right:-60px; top:-60px; width:220px; height:220px;
+      border-radius:50%; background:radial-gradient(circle,rgba(201,150,12,.1) 0%,transparent 70%); pointer-events:none; }
+    .search-title { font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700;
+      color:#F5F0E8; margin-bottom:1rem; }
+    .search-bar-wrap {
+      display: flex; gap: .5rem; align-items: center; max-width: 640px;
+      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+      border-radius: 10px; padding: .5rem .5rem .5rem 1rem; transition: border-color .15s;
+    }
+    .search-bar-wrap:focus-within { border-color: var(--gold); background: rgba(255,255,255,.14); }
+    .search-bar-input {
+      flex: 1; background: transparent; border: none; outline: none;
+      color: white; font-size: .95rem; font-family: inherit;
+    }
+    .search-bar-input::placeholder { color: rgba(255,255,255,.4); }
+    .search-bar-btn {
+      background: var(--gold); border: none; border-radius: 6px; padding: .45rem .9rem;
+      color: var(--ink); font-size: .82rem; font-weight: 600; cursor: pointer; white-space: nowrap;
+    }
+    .search-bar-btn:hover { opacity: .88; }
+
+    /* Type tabs */
+    .search-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 1.75rem; }
+    .search-tab {
+      padding: .55rem 1.25rem; font-size: .85rem; font-weight: 500; cursor: pointer;
+      border: none; background: none; color: var(--ink-muted); border-bottom: 2px solid transparent;
+      margin-bottom: -2px; font-family: inherit; transition: all .12s; white-space: nowrap;
+    }
+    .search-tab.active { color: var(--gold); border-bottom-color: var(--gold); font-weight: 600; }
+    .search-tab .tab-count { font-size: .72rem; opacity: .7; margin-left: .3rem; }
+
+    /* Results */
+    .results-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.25rem; flex-wrap: wrap; gap: .5rem;
+    }
+    .results-count { font-size: .85rem; color: var(--ink-muted); }
+    .results-count strong { color: var(--ink); }
+
+    /* Exam result card */
+    .result-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1.1rem 1.25rem; margin-bottom: .75rem;
+      display: flex; align-items: flex-start; gap: 1rem; transition: all .15s;
+    }
+    .result-card:hover { border-color: var(--gold); box-shadow: 0 4px 16px rgba(201,150,12,.1); transform: translateY(-1px); }
+    .result-icon { width: 40px; height: 40px; border-radius: 8px; background: var(--gold-pale);
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+    .result-body { flex: 1; min-width: 0; }
+    .result-name { font-family: 'Playfair Display', serif; font-size: .97rem; font-weight: 700;
+      color: var(--ink); margin-bottom: .2rem; line-height: 1.3; }
+    .result-meta { font-size: .75rem; color: var(--ink-muted); margin-bottom: .6rem; }
+    .result-tags { display: flex; flex-wrap: wrap; gap: .3rem; margin-bottom: .65rem; }
+    .result-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .result-card a, .result-card button { flex-shrink: 0; }
+
+    /* Difficulty stars (shown on exam cards) */
+    .diff-stars { display: flex; gap: 1px; align-items: center; }
+    .diff-star { font-size: .8rem; line-height: 1; }
+    .diff-label { font-size: .7rem; color: var(--ink-muted); margin-left: .3rem; }
+
+    /* Internship result */
+    .job-result-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 1.1rem 1.25rem; margin-bottom: .75rem; display: flex; gap: 1rem;
+      align-items: flex-start; transition: all .15s;
+    }
+    .job-result-card:hover { border-color: var(--gold); box-shadow: 0 4px 16px rgba(201,150,12,.1); transform: translateY(-1px); }
+
+    /* Empty / loading */
+    .search-empty { text-align: center; padding: 4rem 2rem; color: var(--ink-muted); }
+    .search-empty-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+    .search-loading { display: flex; align-items: center; justify-content: center; gap: .75rem;
+      padding: 3rem; color: var(--ink-muted); font-size: .9rem; }
+  </style>
+</head>
+<body>
+<div id="topbarMount"></div>
+<div class="layout">
+  <div id="sidebarMount"></div>
+  <main class="main">
+
+    <!-- Search header banner -->
+    <div class="search-header">
+      <div class="search-title" id="searchHeading">Search UniHub</div>
+      <div class="search-bar-wrap">
+        <svg width="15" height="15" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-bar-input" id="mainSearchInput" type="text"
+          placeholder="Search exams, notes, internships..." autocomplete="off"
+          onkeydown="if(event.key==='Enter')doSearch()"/>
+        <button class="search-bar-btn" onclick="doSearch()">Search</button>
+      </div>
+    </div>
+
+    <!-- Type filter tabs -->
+    <div class="search-tabs">
+      <button class="search-tab active" id="tab-all"          onclick="switchTab('all')">All <span class="tab-count" id="cnt-all"></span></button>
+      <button class="search-tab"        id="tab-exams"        onclick="switchTab('exams')">📄 Exams <span class="tab-count" id="cnt-exams"></span></button>
+      <button class="search-tab"        id="tab-notes"        onclick="switchTab('notes')">📝 Notes <span class="tab-count" id="cnt-notes"></span></button>
+      <button class="search-tab"        id="tab-internships"  onclick="switchTab('internships')">💼 Jobs <span class="tab-count" id="cnt-internships"></span></button>
+    </div>
+
+    <div id="searchResults">
+      <div class="search-loading">
+        <div class="spinner" style="width:24px;height:24px"></div>
+        Searching...
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="/js/utils.js"></script>
+<script>
+  const params = new URLSearchParams(location.search)
+  let q = params.get('q') || ''
+  let activeType = params.get('type') || 'all'
+  let allResults = {}
+  let difficultyRatings = {}
+
+  // Load saved difficulty ratings from localStorage
+  try { difficultyRatings = JSON.parse(localStorage.getItem('examDifficulty') || '{}') } catch {}
+
+  document.addEventListener('DOMContentLoaded', () => {
+    requireAuth(); renderLayout('exams'); initSidebar()
+    document.getElementById('mainSearchInput').value = q
+    if (q) {
+      document.getElementById('searchHeading').textContent = `Results for "${q}"`
+      runSearch()
+    } else {
+      document.getElementById('searchResults').innerHTML = `
+        <div class="search-empty">
+          <div class="search-empty-icon">🔍</div>
+          <p style="font-size:.95rem;font-weight:500;margin-bottom:.5rem">Type something to search</p>
+          <p style="font-size:.85rem">Search across all past exams, student notes, and internship listings</p>
+        </div>`
+    }
+    switchTab(activeType)
+  })
+
+  async function runSearch() {
+    if (!q || q.length < 2) return
+    document.getElementById('searchResults').innerHTML = '<div class="search-loading"><div class="spinner" style="width:24px;height:24px"></div> Searching...</div>'
+    try {
+      const d = await api.get(`/api/search?q=${encodeURIComponent(q)}&type=all`)
+      allResults = d
+      updateTabCounts(d)
+      renderCurrentTab()
+    } catch(e) {
+      document.getElementById('searchResults').innerHTML = `<div class="search-empty"><div class="search-empty-icon">⚠️</div><p style="color:var(--red)">${esc(e.message)}</p></div>`
+    }
+  }
+
+  function updateTabCounts(d) {
+    const total = d.total || 0
+    document.getElementById('cnt-all').textContent = total ? `(${total})` : ''
+    document.getElementById('cnt-exams').textContent = d.exams?.length ? `(${d.exams.length})` : ''
+    document.getElementById('cnt-notes').textContent = d.notes?.length ? `(${d.notes.length})` : ''
+    document.getElementById('cnt-internships').textContent = d.internships?.length ? `(${d.internships.length})` : ''
+  }
+
+  function switchTab(type) {
+    activeType = type
+    document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'))
+    document.getElementById(`tab-${type}`).classList.add('active')
+    // Update URL without reload
+    const u = new URL(location.href)
+    u.searchParams.set('type', type)
+    history.replaceState({}, '', u)
+    if (Object.keys(allResults).length) renderCurrentTab()
+  }
+
+  function renderCurrentTab() {
+    const el = document.getElementById('searchResults')
+    if (!allResults.total && allResults.total !== undefined) {
+      el.innerHTML = `<div class="search-empty"><div class="search-empty-icon">📭</div><p style="font-size:.95rem;font-weight:500">No results for "<strong>${esc(q)}</strong>"</p><p style="font-size:.85rem;margin-top:.4rem">Try a different search term or check the spelling</p></div>`
+      return
+    }
+    let exams = allResults.exams || []
+    let notes = allResults.notes || []
+    let jobs  = allResults.internships || []
+    if (activeType === 'exams')        { notes = []; jobs = [] }
+    else if (activeType === 'notes')   { exams = []; jobs = [] }
+    else if (activeType === 'internships') { exams = []; notes = [] }
+    const showing = exams.length + notes.length + jobs.length
+    let html = `<div class="results-header"><span class="results-count"><strong>${showing}</strong> result${showing!==1?'s':''} for "<strong>${esc(q)}</strong>"</span></div>`
+    if (exams.length) {
+      html += `<h2 style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:.85rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)">📄 Past Exams (${exams.length})</h2>`
+      html += exams.map(e => renderExamCard(e)).join('')
+    }
+    if (notes.length) {
+      html += `<h2 style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--ink);margin:.5rem 0 .85rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)">📝 Student Notes (${notes.length})</h2>`
+      html += notes.map(n => renderNoteCard(n)).join('')
+    }
+    if (jobs.length) {
+      html += `<h2 style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--ink);margin:.5rem 0 .85rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)">💼 Internships (${jobs.length})</h2>`
+      html += jobs.map(j => renderJobCard(j)).join('')
+    }
+    if (!showing) {
+      html = `<div class="search-empty"><div class="search-empty-icon">📭</div><p style="font-size:.95rem;font-weight:500">No ${activeType} found for "<strong>${esc(q)}</strong>"</p></div>`
+    }
+    el.innerHTML = html
+  }
+
+  const EXAM_TYPE_LABELS = { UE:'University Exam', CAT:'Test / CAT', supp:'Supplementary', mock:'Mock', other:'Exam' }
+  const EXAM_TYPE_CSS = {
+    UE:   'background:#e0f2fe;color:#0369a1',
+    CAT:  'background:#f0fdf4;color:#166534',
+    supp: 'background:#fff7ed;color:#c2410c',
+    mock: 'background:#faf5ff;color:#7e22ce',
+    other:'background:var(--badge-neutral-bg);color:var(--badge-neutral-fg)'
+  }
+  const DARK_EXAM_TYPE_CSS = {
+    UE:   'background:#0C2A3D;color:#7DD3FC',
+    CAT:  'background:#052E16;color:#4ADE80',
+    supp: 'background:#2D1A0A;color:#FB923C',
+    mock: 'background:#1E0A38;color:#C084FC',
+    other:'background:var(--badge-neutral-bg);color:var(--badge-neutral-fg)'
+  }
+
+  function getExamTypeStyle(t) {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    return (isDark ? DARK_EXAM_TYPE_CSS : EXAM_TYPE_CSS)[t||'UE'] || EXAM_TYPE_CSS.other
+  }
+
+  function diffStars(id) {
+    const d = difficultyRatings[id]
+    if (!d) return ''
+    const stars = Array.from({length:5},(_,i)=>`<span class="diff-star">${i<d?'★':'☆'}</span>`).join('')
+    return `<div class="diff-stars">${stars}<span class="diff-label">Difficulty</span></div>`
+  }
+
+  function renderExamCard(e) {
+    const typeStyle = getExamTypeStyle(e.examType)
+    const typeLabel = EXAM_TYPE_LABELS[e.examType||'UE'] || 'Exam'
+    return `
+    <div class="result-card">
+      <div class="result-icon">📄</div>
+      <div class="result-body">
+        <div class="result-name">${esc(e.courseName)}</div>
+        <div class="result-meta">${esc((UNIS[e.university]||e.university||'').toUpperCase())}${e.faculty?' · '+esc(e.faculty):''}${e.courseCode?' · '+esc(e.courseCode):''}</div>
+        <div class="result-tags">
+          <span style="font-size:.7rem;font-weight:600;padding:.15rem .55rem;border-radius:20px;background:var(--gold-pale);color:var(--gold)">${e.year}</span>
+          <span style="font-size:.7rem;font-weight:600;padding:.15rem .55rem;border-radius:20px;${typeStyle}">${typeLabel}</span>
+          ${e.isFeatured?'<span style="font-size:.7rem;font-weight:600;padding:.15rem .55rem;border-radius:20px;background:var(--badge-yellow-bg);color:var(--badge-yellow-fg)">⭐ Featured</span>':''}
+          <span style="font-size:.7rem;color:var(--ink-muted)">👁 ${e.viewCount||0} · ⬇ ${e.downloadCount||0}</span>
+        </div>
+        ${diffStars(e.id)}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">
+        <a href="/pages/exam-viewer.html?id=${e.id}" class="btn btn-primary btn-sm">📖 View</a>
+        <a href="${fileUrl(`/api/exams/${e.id}/download`)}" class="btn btn-secondary btn-sm">⬇</a>
+      </div>
+    </div>`
+  }
+
+  function renderNoteCard(n) {
+    return `
+    <div class="result-card">
+      <div class="result-icon">${n.fileType==='ppt'?'📊':'📝'}</div>
+      <div class="result-body">
+        <div class="result-name">${esc(n.title)}</div>
+        <div class="result-meta">${esc((UNIS[n.university]||n.university||'').toUpperCase())}${n.faculty?' · '+esc(n.faculty):''}${n.courseCode?' · '+esc(n.courseCode):''}</div>
+        <div class="result-tags">
+          ${n.fileType==='ppt'?'<span style="font-size:.7rem;font-weight:600;padding:.15rem .55rem;border-radius:20px;background:var(--badge-blue-bg);color:var(--badge-blue-fg)">📊 PowerPoint</span>':'<span style="font-size:.7rem;font-weight:600;padding:.15rem .55rem;border-radius:20px;background:var(--badge-neutral-bg);color:var(--badge-neutral-fg)">📄 PDF</span>'}
+          <span style="font-size:.7rem;color:var(--ink-muted)">⬇ ${n.downloadCount||0}</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">
+        <a href="/pages/note-viewer.html?id=${n.id}" class="btn btn-primary btn-sm">👁 View</a>
+        <a href="${fileUrl(`/api/notes/${n.id}/download`)}" class="btn btn-secondary btn-sm">⬇</a>
+      </div>
+    </div>`
+  }
+
+  const JOB_ICONS = { banking:'🏦', government:'🏛️', infrastructure:'🏗️', telecommunications:'📡', health:'🏥', education:'📚', technology:'💻', other:'💼' }
+  function renderJobCard(j) {
+    return `
+    <div class="job-result-card">
+      <div class="result-icon">${JOB_ICONS[j.industry]||'💼'}</div>
+      <div class="result-body">
+        <div class="result-name">${esc(j.title)}</div>
+        <div class="result-meta" style="font-size:.85rem;font-weight:500;color:var(--ink)">${esc(j.company)}</div>
+        <div class="result-meta">📍 ${esc(j.location)}${j.industry?' · '+esc(j.industry):''}</div>
+        <div class="result-tags">
+          <span style="font-size:.7rem;font-weight:600;padding:.15rem .55rem;border-radius:20px;background:var(--gold-pale);color:var(--gold)">${esc(j.type)}</span>
+          ${j.isPaid?'<span style="font-size:.7rem;font-weight:600;padding:.15rem .55rem;border-radius:20px;background:var(--badge-green-bg);color:var(--badge-green-fg)">Paid</span>':'<span style="font-size:.7rem;font-weight:600;padding:.15rem .55rem;border-radius:20px;background:var(--badge-red-bg);color:var(--badge-red-fg)">Unpaid</span>'}
+        </div>
+      </div>
+      <div style="flex-shrink:0">
+        <a href="/pages/internships.html" class="btn btn-primary btn-sm">Apply</a>
+      </div>
+    </div>`
+  }
+
+  function doSearch() {
+    q = document.getElementById('mainSearchInput').value.trim()
+    if (!q) return
+    document.getElementById('searchHeading').textContent = `Results for "${q}"`
+    const u = new URL(location.href)
+    u.searchParams.set('q', q)
+    u.searchParams.set('type', activeType)
+    history.replaceState({}, '', u)
+    runSearch()
+  }
+</script>
+</body>
+</html>

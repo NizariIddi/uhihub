@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Notes Marketplace — UniHub Tanzania</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <style>
+    .filters{display:grid;grid-template-columns:2fr 1fr 1fr;gap:.75rem;margin-bottom:1.5rem}
+    .req-card{background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:1.3rem;margin-bottom:.85rem;transition:all .18s}
+    .req-card:hover{border-color:var(--gold);box-shadow:0 4px 12px rgba(201,150,12,.1)}
+    .req-top{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:.6rem}
+    .req-course{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;line-height:1.3}
+    .req-meta{font-size:.78rem;color:var(--ink-muted);margin-top:.15rem}
+    .req-desc{font-size:.85rem;color:var(--ink-muted);line-height:1.6;margin-bottom:.85rem}
+    .req-footer{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+    .req-by{font-size:.75rem;color:var(--ink-muted)}
+    .status-open{background:var(--badge-green-bg);color:var(--badge-green-fg);font-size:.7rem;padding:.18rem .6rem;border-radius:20px;font-weight:600}
+    .status-fulfilled{background:var(--badge-yellow-bg);color:var(--badge-yellow-fg);font-size:.7rem;padding:.18rem .6rem;border-radius:20px;font-weight:600}
+    .fulfill-count{font-size:.75rem;color:var(--ink-muted)}
+    .empty{text-align:center;padding:4rem 2rem;color:var(--ink-muted)}
+    .fg{margin-bottom:1rem}
+    .fg label{display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem}
+  </style>
+</head>
+<body>
+<div id="topbarMount"></div>
+<div class="layout">
+  <div id="sidebarMount"></div>
+  <main class="main">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem">
+      <div>
+        <div class="label">Community</div>
+        <h1 class="page-title">Notes Marketplace</h1>
+        <p style="color:var(--ink-muted);font-size:.875rem;margin-top:.25rem">Request notes you need. Help others by fulfilling their requests.</p>
+      </div>
+      <button class="btn btn-gold btn-sm" onclick="openRequestModal()">+ Request notes</button>
+    </div>
+
+    <div class="filters">
+      <input class="input" type="text" id="fSearch" placeholder="🔍 Search by course name or code..."/>
+      <select class="input" id="fUni"></select>
+      <select class="input" id="fStatus">
+        <option value="">All requests</option>
+        <option value="open">Open only</option>
+        <option value="fulfilled">Fulfilled</option>
+      </select>
+    </div>
+
+    <div style="font-size:.82rem;color:var(--ink-muted);margin-bottom:1rem" id="rCount">Loading...</div>
+    <div id="requestsList">
+      <div class="skeleton" style="height:130px;border-radius:8px;margin-bottom:.85rem"></div>
+      <div class="skeleton" style="height:130px;border-radius:8px;margin-bottom:.85rem"></div>
+      <div class="skeleton" style="height:130px;border-radius:8px"></div>
+    </div>
+  </main>
+</div>
+
+<!-- New request modal -->
+<div class="modal-overlay hidden" id="requestModal">
+  <div class="modal" style="max-width:500px">
+    <h2 class="modal-title">📋 Request notes</h2>
+    <p style="font-size:.85rem;color:var(--ink-muted);margin-bottom:1.25rem">Tell the community what notes you need and someone will upload them for you.</p>
+    <div id="reqErr" class="alert alert-error hidden" style="margin-bottom:1rem"></div>
+    <form id="reqForm">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+        <div class="fg"><label>Course name *</label><input class="input" type="text" id="rCourseName" placeholder="e.g. Database Systems" required/></div>
+        <div class="fg"><label>Course code *</label><input class="input" type="text" id="rCourseCode" placeholder="e.g. CS301" required/></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+        <div class="fg"><label>University *</label><select class="input" id="rUni" required></select></div>
+        <div class="fg"><label>Faculty</label><input class="input" type="text" id="rFaculty" placeholder="e.g. Science"/></div>
+      </div>
+      <div class="fg"><label>What exactly do you need? <span style="font-weight:300;color:var(--ink-muted)">(optional)</span></label><textarea class="input" id="rDesc" rows="3" placeholder="e.g. Looking for lecture notes for topics covered in Semester 2 2023, especially normalization and SQL..."></textarea></div>
+      <div style="display:flex;gap:.75rem">
+        <button type="submit" class="btn btn-primary" style="flex:1" id="reqSubmitBtn">Post request</button>
+        <button type="button" class="btn btn-secondary" style="flex:1" onclick="closeRequestModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Fulfill request modal -->
+<div class="modal-overlay hidden" id="fulfillModal">
+  <div class="modal" style="max-width:500px">
+    <h2 class="modal-title" id="fulfillTitle">📤 Upload notes for this request</h2>
+    <div id="fulfillReqDetails" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:.85rem;margin-bottom:1.25rem;font-size:.85rem;color:var(--ink-muted)"></div>
+    <div id="fulfillErr" class="alert alert-error hidden" style="margin-bottom:1rem"></div>
+    <form id="fulfillForm">
+      <input type="hidden" id="fulfillReqId"/>
+      <div class="fg"><label>Notes title *</label><input class="input" type="text" id="fNoteTitle" placeholder="e.g. CS301 Full Lecture Notes - Semester 2 2023" required/></div>
+      <div class="fg"><label>Description</label><textarea class="input" id="fNoteDesc" rows="2" placeholder="What topics are covered?"></textarea></div>
+      <div class="fg">
+        <label>PDF file *</label>
+        <input class="input" type="file" id="fNoteFile" accept=".pdf,application/pdf" required style="padding:.5rem"/>
+        <div style="font-size:.75rem;color:var(--ink-muted);margin-top:.3rem">PDF only · max 25MB</div>
+      </div>
+      <div id="fulfillProgress" class="hidden" style="margin-bottom:1rem">
+        <div style="background:var(--badge-neutral-bg);border-radius:4px;height:8px;overflow:hidden">
+          <div id="fulfillBar" style="height:100%;background:var(--gold);width:0%;transition:width .3s"></div>
+        </div>
+        <div style="font-size:.75rem;color:var(--ink-muted);margin-top:.3rem" id="fulfillPct">0%</div>
+      </div>
+      <div style="display:flex;gap:.75rem">
+        <button type="submit" class="btn btn-primary" style="flex:1" id="fulfillBtn">Upload & fulfill</button>
+        <button type="button" class="btn btn-secondary" style="flex:1" onclick="closeFulfillModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/js/utils.js"></script>
+<script>
+  let allRequests = [], searchTimer
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    requireAuth(); renderLayout('marketplace'); initSidebar()
+    document.getElementById('fUni').innerHTML  = uniOptions('All universities')
+    document.getElementById('rUni').innerHTML  = uniOptions('Select university *')
+    await loadRequests()
+    document.getElementById('fSearch').addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(applyFilters,280) })
+    document.getElementById('fUni').addEventListener('change', applyFilters)
+    document.getElementById('fStatus').addEventListener('change', applyFilters)
+  })
+
+  async function loadRequests() {
+    try {
+      const d = await api.get('/api/marketplace')
+      allRequests = d.requests || []
+      renderRequests(allRequests)
+    } catch(e) {
+      document.getElementById('requestsList').innerHTML = `<div class="empty"><p style="color:var(--red)">${esc(e.message)}</p></div>`
+    }
+  }
+
+  function applyFilters() {
+    const s = document.getElementById('fSearch').value.toLowerCase().trim()
+    const u = document.getElementById('fUni').value
+    const st = document.getElementById('fStatus').value
+    renderRequests(allRequests.filter(r =>
+      (!s || r.courseName.toLowerCase().includes(s) || r.courseCode.toLowerCase().includes(s)) &&
+      (!u || r.university === u) &&
+      (!st || r.status === st)
+    ))
+  }
+
+  function renderRequests(list) {
+    const count = document.getElementById('rCount')
+    count.textContent = `${list.length} request${list.length!==1?'s':''}`
+    const el = document.getElementById('requestsList')
+    const me = getUser()
+
+    if (!list.length) {
+      el.innerHTML = `<div class="empty">
+        <div style="font-size:2.5rem;margin-bottom:1rem">📋</div>
+        <p style="font-weight:500">No requests found.</p>
+        <p style="font-size:.85rem;margin-top:.5rem">Be the first to request notes your classmates need!</p>
+        <button onclick="openRequestModal()" class="btn btn-gold" style="margin-top:1.25rem">Post a request</button>
+      </div>`
+      return
+    }
+
+    el.innerHTML = list.map(r => `
+      <div class="req-card">
+        <div class="req-top">
+          <div>
+            <div class="req-course">${esc(r.courseName)}</div>
+            <div class="req-meta">
+              ${esc(r.courseCode)} · ${esc((UNIS[r.university]||r.university||'').toUpperCase())}
+              ${r.faculty?' · '+esc(r.faculty):''}
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.35rem;flex-shrink:0">
+            <span class="${r.status==='fulfilled'?'status-fulfilled':'status-open'}">${r.status==='fulfilled'?'✓ Fulfilled':'● Open'}</span>
+            ${r.fulfillCount > 0 ? `<span class="fulfill-count">${r.fulfillCount} upload${r.fulfillCount!==1?'s':''}</span>` : ''}
+          </div>
+        </div>
+        ${r.description ? `<div class="req-desc">${esc(r.description)}</div>` : ''}
+        <div class="req-footer">
+          <span class="req-by">Requested by ${r.requester?esc(r.requester.firstName+' '+r.requester.lastName):'someone'} · ${timeAgo(r.createdAt||r.created_at)}</span>
+          <div style="display:flex;gap:.4rem;margin-left:auto">
+            <button onclick="openFulfillModal('${r.id}')" class="btn btn-primary btn-sm">📤 Fulfill</button>
+            ${r.userId===me?.id?`<button onclick="deleteRequest('${r.id}')" class="btn btn-secondary btn-sm">Delete</button>`:''}
+          </div>
+        </div>
+      </div>`).join('')
+  }
+
+  // Request modal
+  function openRequestModal()  { document.getElementById('requestModal').classList.remove('hidden') }
+  function closeRequestModal() { document.getElementById('requestModal').classList.add('hidden') }
+
+  document.getElementById('reqForm').addEventListener('submit', async e => {
+    e.preventDefault()
+    const btn = document.getElementById('reqSubmitBtn')
+    const err = document.getElementById('reqErr')
+    err.classList.add('hidden'); btn.disabled=true; btn.textContent='Posting...'
+    try {
+      await api.post('/api/marketplace', {
+        courseName: document.getElementById('rCourseName').value.trim(),
+        courseCode: document.getElementById('rCourseCode').value.trim(),
+        university: document.getElementById('rUni').value,
+        faculty:    document.getElementById('rFaculty').value.trim(),
+        description:document.getElementById('rDesc').value.trim(),
+      })
+      toast('Request posted! 🎉')
+      closeRequestModal()
+      document.getElementById('reqForm').reset()
+      await loadRequests()
+    } catch(ex) { err.textContent=ex.message; err.classList.remove('hidden') }
+    btn.disabled=false; btn.textContent='Post request'
+  })
+
+  // Fulfill modal
+  function openFulfillModal(reqId) {
+    const req = allRequests.find(r => r.id===reqId)
+    if (!req) return
+    document.getElementById('fulfillReqId').value = reqId
+    document.getElementById('fulfillTitle').textContent = `📤 Upload notes for ${req.courseCode}`
+    document.getElementById('fulfillReqDetails').innerHTML = `
+      <strong>${esc(req.courseName)}</strong> · ${esc((UNIS[req.university]||req.university||'').toUpperCase())}
+      ${req.description?`<div style="margin-top:.35rem">${esc(req.description)}</div>`:''}
+    `
+    document.getElementById('fulfillErr').classList.add('hidden')
+    document.getElementById('fulfillForm').reset()
+    document.getElementById('fulfillProgress').classList.add('hidden')
+    document.getElementById('fulfillBar').style.width='0%'
+    document.getElementById('fulfillModal').classList.remove('hidden')
+  }
+  function closeFulfillModal() { document.getElementById('fulfillModal').classList.add('hidden') }
+
+  document.getElementById('fulfillForm').addEventListener('submit', async e => {
+    e.preventDefault()
+    const btn   = document.getElementById('fulfillBtn')
+    const err   = document.getElementById('fulfillErr')
+    const prog  = document.getElementById('fulfillProgress')
+    const bar   = document.getElementById('fulfillBar')
+    const pct   = document.getElementById('fulfillPct')
+    const reqId = document.getElementById('fulfillReqId').value
+    err.classList.add('hidden')
+
+    const file = document.getElementById('fNoteFile').files[0]
+    if (!file) { err.textContent='Please select a PDF file.'; err.classList.remove('hidden'); return }
+    if (!file.name.toLowerCase().endsWith('.pdf')) { err.textContent='Only PDF files are allowed.'; err.classList.remove('hidden'); return }
+    if (file.size > 25*1024*1024) { err.textContent='File too large (max 25MB).'; err.classList.remove('hidden'); return }
+
+    btn.disabled=true; btn.textContent='Uploading...'
+    prog.classList.remove('hidden')
+
+    const fd = new FormData()
+    fd.append('title',       document.getElementById('fNoteTitle').value.trim())
+    fd.append('description', document.getElementById('fNoteDesc').value.trim())
+    fd.append('file', file)
+
+    try {
+      await api.upload(`/api/marketplace/${reqId}/fulfill`, fd, p => {
+        bar.style.width=p+'%'; pct.textContent=p<100?`Uploading ${p}%`:'Processing...'
+        btn.textContent=p<100?`Uploading ${p}%...`:'Processing...'
+      })
+      toast('Notes uploaded! Thank you for helping 🎉')
+      closeFulfillModal()
+      await loadRequests()
+    } catch(ex) { err.textContent=ex.message; err.classList.remove('hidden') }
+    btn.disabled=false; btn.textContent='Upload & fulfill'
+    prog.classList.add('hidden')
+  })
+
+  async function deleteRequest(id) {
+    if (!confirm('Delete this request?')) return
+    try { await api.delete(`/api/marketplace/${id}`); toast('Request deleted.'); await loadRequests() }
+    catch(e) { toast(e.message,'error') }
+  }
+</script>
+</body>
+</html>

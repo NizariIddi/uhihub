@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Course — UniHub Tanzania</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <style>
+    .course-hero{background:var(--ink);color:var(--gold-light);padding:2rem 2.5rem;border-radius:8px;margin-bottom:2rem}
+    .course-hero h1{font-size:1.6rem;font-weight:700;margin-bottom:.3rem}
+    .course-hero-meta{font-size:.875rem;opacity:.7;margin-bottom:1.25rem}
+    .hero-stats{display:flex;gap:2rem;flex-wrap:wrap}
+    .hstat{text-align:center}
+    .hstat-num{font-size:1.5rem;font-weight:700;color:var(--gold);display:block}
+    .hstat-lbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;opacity:.6}
+    .avg-pills{display:flex;gap:.75rem;margin-top:1.25rem;flex-wrap:wrap}
+    .avg-pill{background:rgba(255,255,255,.08);padding:.35rem .85rem;border-radius:20px;font-size:.78rem}
+    .avg-pill strong{color:var(--gold)}
+    .tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1.5rem}
+    .tab{padding:.6rem 1.25rem;font-size:.875rem;font-weight:500;cursor:pointer;border:none;background:none;color:var(--ink-muted);border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit;transition:all .15s}
+    .tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+    .tab-panel{display:none}.tab-panel.active{display:block}
+    .exam-row{display:flex;align-items:center;gap:.75rem;padding:.85rem;background:var(--card-bg);border:1px solid var(--border);border-radius:6px;margin-bottom:.6rem;transition:all .15s}
+    .exam-row:hover{border-color:var(--gold);box-shadow:0 2px 8px rgba(201,150,12,.1)}
+    .exam-year{font-size:.75rem;font-weight:700;background:var(--gold-pale);color:var(--gold);padding:.2rem .6rem;border-radius:20px;flex-shrink:0}
+    .exam-name{flex:1;font-size:.875rem;font-weight:500}
+    .exam-stats{font-size:.74rem;color:var(--ink-muted)}
+    .note-row{display:flex;align-items:center;gap:.75rem;padding:.85rem;background:var(--card-bg);border:1px solid var(--border);border-radius:6px;margin-bottom:.6rem}
+    .note-row:hover{border-color:var(--gold)}
+    .review-item{background:var(--card-bg);border:1px solid var(--border);border-radius:6px;padding:1rem;margin-bottom:.75rem}
+    .empty-sec{text-align:center;padding:2.5rem;color:var(--ink-muted);font-size:.875rem;background:var(--card-bg);border:1px solid var(--border);border-radius:6px}
+  </style>
+</head>
+<body>
+<div id="topbarMount"></div>
+<div class="layout">
+  <div id="sidebarMount"></div>
+  <main class="main">
+    <div id="pageContent">
+      <div class="skeleton" style="height:200px;border-radius:8px;margin-bottom:2rem"></div>
+      <div class="skeleton" style="height:300px;border-radius:8px"></div>
+    </div>
+  </main>
+</div>
+
+<script src="/js/utils.js"></script>
+<script>
+  let moduleData = null
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    requireAuth(); renderLayout('academics'); initSidebar()
+    const params = new URLSearchParams(window.location.search)
+    const id = params.get('id')
+    if (!id) { window.location.href='/pages/academics.html'; return }
+    await loadModule(id)
+  })
+
+  async function loadModule(id) {
+    try {
+      const d = await api.get(`/api/hierarchy/modules/${id}`)
+      moduleData = d.module
+      renderModule(moduleData)
+    } catch(e) {
+      document.getElementById('pageContent').innerHTML = `<div style="text-align:center;padding:4rem;color:var(--red)">${esc(e.message)}</div>`
+    }
+  }
+
+  function renderModule(mod) {
+    const exams = mod.exams || []
+    const notes = mod.notes || []
+    const topics = mod.topics || []
+    document.title = `${mod.name} — UniHub`
+    const SEM = {'1':'Semester 1','2':'Semester 2','full-year':'Full Year'}
+    const TYPE_BADGE = {'UE':'<span style="font-size:.65rem;background:#e0f2fe;color:#0369a1;padding:.1rem .4rem;border-radius:20px;font-weight:600">UE</span>','CAT':'<span style="font-size:.65rem;background:#f0fdf4;color:#166534;padding:.1rem .4rem;border-radius:20px;font-weight:600">CAT</span>','supp':'<span style="font-size:.65rem;background:#fff7ed;color:#c2410c;padding:.1rem .4rem;border-radius:20px;font-weight:600">Supp</span>','mock':'<span style="font-size:.65rem;background:#faf5ff;color:#7e22ce;padding:.1rem .4rem;border-radius:20px;font-weight:600">Mock</span>'}
+
+    document.getElementById('pageContent').innerHTML = `
+      <div style="margin-bottom:1rem">
+        <button onclick="history.back()" style="font-size:.82rem;color:var(--ink-muted);display:inline-flex;align-items:center;gap:.35rem;background:none;border:none;cursor:pointer;font-family:inherit;padding:0">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg> Back
+        </button>
+      </div>
+      <div class="course-hero">
+        <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-bottom:.6rem">
+          <div style="font-size:.78rem;font-weight:700;background:rgba(245,200,66,.15);color:var(--gold);padding:.2rem .7rem;border-radius:20px">${esc(mod.code)}</div>
+          <div style="font-size:.72rem;background:${mod.isCore?'rgba(34,197,94,.15)':'rgba(156,163,175,.15)'};color:${mod.isCore?'#4ade80':'#9ca3af'};padding:.2rem .65rem;border-radius:20px">${mod.isCore?'Core':'Elective'}</div>
+        </div>
+        <h1>${esc(mod.name)}</h1>
+        <div class="course-hero-meta">Year ${mod.yearOfStudy} · ${SEM[mod.semester]||mod.semester} · ${mod.credits||0} credits</div>
+        ${mod.description?`<div style="font-size:.85rem;opacity:.75;max-width:600px;line-height:1.65;margin-top:.6rem;margin-bottom:1rem">${esc(mod.description)}</div>`:''}
+        <div class="hero-stats">
+          <div class="hstat"><span class="hstat-num">${exams.length}</span><span class="hstat-lbl">Past exams</span></div>
+          <div class="hstat"><span class="hstat-num">${notes.length}</span><span class="hstat-lbl">Notes</span></div>
+          <div class="hstat"><span class="hstat-num">${topics.length}</span><span class="hstat-lbl">Topics</span></div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" onclick="showTab('exams')">📄 Past Exams (${exams.length})</button>
+        <button class="tab" onclick="showTab('notes')">📝 Notes (${notes.length})</button>
+        <button class="tab" onclick="showTab('topics')">📌 Topics (${topics.length})</button>
+      </div>
+
+      <!-- Exams tab -->
+      <div class="tab-panel active" id="tab-exams">
+        ${exams.length ? exams.map(e => `
+          <div class="exam-row">
+            <span class="exam-year">${e.year}</span>
+            <span class="exam-name">${esc(e.courseName)}</span>
+            <span class="exam-stats">⬇ ${e.downloadCount||0} · 👁 ${e.viewCount||0}</span>
+            <a href="/pages/exam-viewer.html?id=${e.id}" class="btn btn-primary btn-sm">📖 View</a>
+            <button onclick="window.location.href=fileUrl('/api/exams/${e.id}/download')" class="btn btn-secondary btn-sm">⬇</button>
+          </div>`).join('') : '<div class="empty-sec">No past exams uploaded yet for this course.<br/><a href="/pages/exams.html" style="color:var(--gold)">Upload one →</a></div>'}
+      </div>
+
+      <div class="tab-panel" id="tab-notes">
+        ${notes.length ? notes.map(n => `
+          <div class="note-row">
+            <span style="font-size:1.1rem">${n.fileType==='ppt'?'📊':'📄'}</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:.875rem;font-weight:500">${esc(n.title)}</div>
+              <div style="font-size:.75rem;color:var(--ink-muted)">by ${n.uploadedBy?esc(n.uploadedBy.firstName+' '+n.uploadedBy.lastName):'Anonymous'} · ⬇ ${n.downloadCount||0}</div>
+            </div>
+            <a href="/pages/note-viewer.html?id=${n.id}" class="btn btn-secondary btn-sm">👁 View</a>
+            <button onclick="window.location.href=fileUrl('/api/notes/${n.id}/download')" class="btn btn-gold btn-sm">⬇</button>
+          </div>`).join('') : '<div class="empty-sec">No notes for this module yet.<br/><a href="/pages/notes.html" style="color:var(--gold)">Upload notes →</a></div>'}
+      </div>
+
+      <div class="tab-panel" id="tab-topics">
+        ${topics.length ? `
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.75rem">
+            ${topics.map((t,i)=>`
+              <div style="display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:var(--card-bg);border:1px solid var(--border);border-radius:8px">
+                <div style="width:24px;height:24px;background:var(--gold-pale);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--gold);flex-shrink:0">${i+1}</div>
+                <span style="font-size:.875rem;color:var(--ink)">${esc(t.name)}</span>
+              </div>`).join('')}
+          </div>` : '<div class="empty-sec">No topics listed for this module yet.</div>'}
+      </div>`
+
+  }
+
+  function showTab(name) {
+    document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['exams','notes','topics'][i]===name))
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'))
+    document.getElementById(`tab-${name}`)?.classList.add('active')
+  }
+
+
+</script>
+</body>
+</html>

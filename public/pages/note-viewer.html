@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Note Viewer — UniHub Tanzania</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;height:100vh;display:flex;flex-direction:column;overflow:hidden;background:var(--surface)}
+    [data-theme="dark"] body{background:#0D0B05}
+
+    /* Top bar */
+    .vbar{height:52px;background:var(--card-bg);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 1rem;gap:.75rem;flex-shrink:0;z-index:10}
+    .back{display:flex;align-items:center;gap:.35rem;font-size:.82rem;color:var(--ink-muted);background:none;border:none;cursor:pointer;padding:.4rem .65rem;border-radius:6px;white-space:nowrap;font-family:inherit}
+    .back:hover{background:var(--gold-pale);color:var(--ink)}
+    .vbar-title{flex:1;min-width:0}
+    .vbar-title h2{font-size:.9rem;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+    .vbar-title span{font-size:.71rem;color:var(--ink-muted)}
+    .vbar-btns{display:flex;gap:.4rem;flex-shrink:0;align-items:center}
+
+    /* Body */
+    .vbody{flex:1;display:flex;overflow:hidden}
+    [data-theme="dark"] .vbody{background:#111008}
+
+    /* File viewer side */
+    .file-side{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    .file-toolbar{background:var(--card-bg);border-bottom:1px solid var(--border);padding:.4rem 1rem;display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+    .file-toolbar button{background:none;border:1px solid var(--border);border-radius:4px;padding:.22rem .65rem;font-size:.78rem;cursor:pointer;font-family:inherit;color:var(--ink)}
+    .file-toolbar button:hover{background:var(--gold-pale)}
+    .file-info{font-size:.78rem;color:var(--ink-muted);flex:1}
+    .file-container{flex:1;overflow:hidden;position:relative;background:var(--surface)}
+    [data-theme="dark"] .file-container{background:#0D0B05}
+    #fileFrame{width:100%;height:100%;border:none;display:block}
+
+    /* PPT viewer */
+    .ppt-viewer{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;gap:1.5rem;background:var(--surface);overflow-y:auto}
+    .ppt-icon{font-size:4rem;opacity:.6}
+    .ppt-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--ink);text-align:center}
+    .ppt-sub{font-size:.875rem;color:var(--ink-muted);text-align:center;max-width:400px;line-height:1.6}
+    .ppt-tip{background:var(--gold-pale);border:1px solid rgba(201,150,12,.3);border-radius:8px;padding:1rem 1.25rem;max-width:440px;width:100%}
+    .ppt-tip p{font-size:.82rem;color:var(--ink);line-height:1.6;margin:0}
+    .ppt-tip p + p{margin-top:.5rem}
+
+    /* AI side */
+    .ai-side{width:370px;flex-shrink:0;background:var(--card-bg);border-left:1px solid var(--border);display:flex;flex-direction:column;transition:width .25s}
+    .ai-side.closed{width:0;overflow:hidden}
+    .ai-hdr{padding:.8rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;flex-shrink:0}
+    .ai-dot{width:8px;height:8px;background:#22c55e;border-radius:50%;animation:pulse 2s infinite;flex-shrink:0}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    .ai-hdr-title{font-size:.87rem;font-weight:600;flex:1;color:var(--ink)}
+    .ai-hdr-close{background:none;border:none;cursor:pointer;color:var(--ink-muted);font-size:1rem;border-radius:4px;padding:.15rem .3rem;font-family:inherit}
+    .ai-hdr-close:hover{background:var(--gold-pale)}
+    .ai-status{padding:.55rem 1rem;font-size:.77rem;border-bottom:1px solid var(--border);flex-shrink:0;line-height:1.4}
+    .ai-status.idle{background:var(--surface);color:var(--ink-muted)}
+    .ai-status.reading{background:#fffbeb;color:#92400e}
+    [data-theme="dark"] .ai-status.reading{background:#2a1f08;color:#F5C842}
+    .ai-status.ready{background:var(--badge-green-bg);color:var(--badge-green-fg)}
+    .ai-status.err{background:var(--badge-red-bg);color:var(--badge-red-fg)}
+    [data-theme="dark"] .ai-status.idle{background:#1C1A12;color:#9E9282}
+    [data-theme="dark"] .ai-status.reading{background:#2a1f08;color:#F5C842}
+    .chat-msgs{flex:1;overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:.6rem}
+    .msg{max-width:94%}
+    .msg-ai{align-self:flex-start}
+    .msg-user{align-self:flex-end}
+    .bubble{padding:.6rem .85rem;font-size:.83rem;line-height:1.65;word-wrap:break-word}
+    .msg-ai .bubble{background:var(--surface-2);border-radius:4px 12px 12px 12px;color:var(--ink)}
+    .msg-user .bubble{background:var(--ink);border-radius:12px 4px 12px 12px;color:#F5D97A}
+    [data-theme="dark"] .msg-ai .bubble{background:#252210;color:#F5F0E8}
+    [data-theme="dark"] .msg-user .bubble{background:#2a2310;color:#F5D97A}
+    .msg-time{font-size:.68rem;color:var(--ink-muted);padding:.1rem .25rem}
+    .msg-ai .msg-time{text-align:left}
+    .msg-user .msg-time{text-align:right}
+    .typing{align-self:flex-start;padding:.6rem .85rem;background:var(--surface-2);border-radius:4px 12px 12px 12px;display:flex;gap:4px}
+    [data-theme="dark"] .typing{background:#252210}
+    .typing span{width:6px;height:6px;background:var(--ink-muted);border-radius:50%;animation:bounce 1.2s infinite}
+    .typing span:nth-child(2){animation-delay:.2s}
+    .typing span:nth-child(3){animation-delay:.4s}
+    @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+    .quick-area{padding:.55rem .75rem;border-top:1px solid var(--border);flex-shrink:0}
+    .quick-lbl{font-size:.68rem;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.35rem}
+    .quick-btns{display:flex;flex-wrap:wrap;gap:.3rem}
+    .qbtn{font-size:.72rem;padding:.24rem .6rem;background:var(--gold-pale);border:1px solid rgba(201,150,12,.3);border-radius:20px;cursor:pointer;color:var(--gold);white-space:nowrap;font-family:inherit}
+    .qbtn:hover{background:var(--gold-light);color:var(--surface)}
+    .chat-in-area{padding:.6rem .75rem;border-top:1px solid var(--border);flex-shrink:0}
+    .lang-row{display:flex;gap:.35rem;margin-bottom:.4rem}
+    .lpill{font-size:.7rem;padding:.16rem .55rem;border-radius:20px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--ink-muted);font-family:inherit}
+    .lpill.active{background:var(--ink);color:var(--gold-light);border-color:var(--ink)}
+    [data-theme="dark"] .lpill.active{background:#F5C842;color:#111008;border-color:#F5C842}
+    .in-row{display:flex;gap:.4rem;align-items:flex-end}
+    .chat-in{flex:1;border:1px solid var(--border);border-radius:16px;padding:.5rem .85rem;font-size:.83rem;outline:none;resize:none;font-family:inherit;line-height:1.4;max-height:100px;background:var(--card-bg);color:var(--ink)}
+    .chat-in:focus{border-color:var(--gold)}
+    .send-btn{width:36px;height:36px;background:var(--ink);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .send-btn:hover{opacity:.82}
+    .send-btn:disabled{opacity:.35;cursor:not-allowed}
+    [data-theme="dark"] .send-btn{background:#F5C842}
+    .ai-fab{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--ink);color:var(--gold-light);border:none;border-radius:24px;padding:.6rem 1.1rem;font-size:.83rem;font-weight:500;cursor:pointer;display:none;align-items:center;gap:.4rem;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:40;font-family:inherit}
+    .ai-fab.show{display:flex}
+    @media(max-width:780px){
+      .ai-side{position:fixed;right:0;top:0;bottom:0;z-index:50;width:100%!important;transform:translateX(100%);transition:transform .25s}
+      .ai-side.mobile-open{transform:translateX(0)}
+      .ai-side.closed{transform:translateX(100%);width:100%!important}
+      .ai-fab{display:flex!important}
+    }
+  </style>
+</head>
+<body>
+
+<div class="vbar">
+  <button class="back" onclick="history.back()">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>
+    Back
+  </button>
+  <div class="vbar-title">
+    <h2 id="noteTitle">Loading...</h2>
+    <span id="noteMeta"></span>
+  </div>
+  <div class="vbar-btns">
+    <button id="themeBtn" onclick="toggleDarkMode()" title="Toggle dark mode"
+      style="background:none;border:1px solid var(--border);border-radius:6px;padding:.3rem .55rem;cursor:pointer;font-size:.95rem">🌙</button>
+    <a id="dlBtn" href="#" class="btn btn-gold btn-sm">⬇ Download</a>
+    <button class="btn btn-secondary btn-sm" onclick="toggleAI()" id="aiToggleBtn">🤖 AI Tutor</button>
+  </div>
+</div>
+
+<div class="vbody">
+  <!-- File viewer -->
+  <div class="file-side">
+    <div class="file-toolbar">
+      <span class="file-info" id="fileInfo">Loading...</span>
+      <button onclick="zoomIn()" id="zoomInBtn" style="display:none">＋</button>
+      <button onclick="zoomOut()" id="zoomOutBtn" style="display:none">－</button>
+      <button onclick="resetZoom()" id="zoomResetBtn" style="display:none">Reset</button>
+    </div>
+    <div class="file-container" id="fileContainer">
+      <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink-muted)">
+        <div class="spinner" style="width:32px;height:32px;border-width:3px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI sidebar -->
+  <div class="ai-side" id="aiSide">
+    <div class="ai-hdr">
+      <div class="ai-dot"></div>
+      <span class="ai-hdr-title">🤖 AI Study Tutor</span>
+      <button class="ai-hdr-close" onclick="toggleAI()">✕</button>
+    </div>
+    <div class="ai-status idle" id="aiStatus">
+      Ask me anything about these notes — I'll help you understand the content.
+    </div>
+    <div class="chat-msgs" id="chatMsgs"></div>
+    <div class="quick-area">
+      <div class="quick-lbl">Quick prompts</div>
+      <div class="quick-btns" id="quickBtns">
+        <button class="qbtn" onclick="qs('Summarise the key points in these notes')">Summarise key points</button>
+        <button class="qbtn" onclick="qs('What are the most important concepts I should know?')">Important concepts</button>
+        <button class="qbtn" onclick="qs('Create 5 practice questions from this material')">Practice questions</button>
+        <button class="qbtn" onclick="qs('Explain this topic simply as if I am a beginner')">Explain simply</button>
+        <button class="qbtn" onclick="qs('What exam questions might come from this material?')">Likely exam questions</button>
+      </div>
+    </div>
+    <div class="chat-in-area">
+      <div class="lang-row">
+        <button class="lpill active" data-lang="english" onclick="setLang(this)">English</button>
+        <button class="lpill" data-lang="swahili" onclick="setLang(this)">Kiswahili</button>
+      </div>
+      <div class="in-row">
+        <textarea class="chat-in" id="chatIn" rows="1"
+          placeholder="Ask anything about these notes..."
+          onkeydown="onKey(event)" oninput="autoH(this)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="send()">
+          <svg width="15" height="15" fill="none" stroke="#F5D97A" stroke-width="2.2" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="ai-fab" id="aiFab" onclick="openAI()">🤖 AI Tutor</button>
+
+<script src="/js/utils.js"></script>
+<script>
+  let noteData = null, noteId = null, chatHistory = [], lang = 'english', zoom = 1, aiOpen = true
+
+  // Sync theme button
+  const _tb = document.getElementById('themeBtn')
+  function _syncT(){ if(_tb) _tb.textContent = localStorage.getItem('theme')==='dark'?'☀️':'🌙' }
+  _syncT()
+  const _orig = window.updateThemeBtn
+  window.updateThemeBtn = function(){ if(_orig)_orig(); _syncT() }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    requireAuth()
+    const params = new URLSearchParams(window.location.search)
+    noteId = params.get('id')
+    if (!noteId) { window.location.href = '/pages/notes.html'; return }
+    await loadNote()
+  })
+
+  async function loadNote() {
+    try {
+      noteData = await api.get(`/api/notes/${noteId}`)
+
+      document.getElementById('noteTitle').textContent = noteData.title
+      document.getElementById('noteMeta').textContent =
+        [UNIS[noteData.university]||noteData.university||'', noteData.courseCode, noteData.faculty]
+          .filter(Boolean).join(' · ')
+      document.title = noteData.title + ' — UniHub'
+      document.getElementById('dlBtn').href = fileUrl(`/api/notes/${noteId}/download`)
+
+      const isPpt = noteData.fileType === 'ppt'
+      const container = document.getElementById('fileContainer')
+
+      if (isPpt) {
+        // PPT: show a friendly preview + download prompt
+        document.getElementById('fileInfo').textContent = `${noteData.title} · PowerPoint presentation`
+        document.getElementById('zoomInBtn').style.display = 'none'
+
+        // Try to use Google Slides viewer for PPTX (works for public URLs — may not for local)
+        const fileFullUrl = window.location.origin + fileUrl(`/api/notes/${noteId}/file`)
+
+        container.innerHTML = `
+          <div class="ppt-viewer">
+            <div class="ppt-icon">📊</div>
+            <div class="ppt-title">${esc(noteData.title)}</div>
+            <div class="ppt-sub">
+              ${esc(noteData.courseCode||'')}${noteData.faculty?' · '+esc(noteData.faculty):''}<br/>
+              PowerPoint presentation — ${noteData.description ? esc(noteData.description) : 'Student notes'}
+            </div>
+            <div style="display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center">
+              <a href="${fileUrl(`/api/notes/${noteId}/download`)}" class="btn btn-gold">⬇ Download to view slides</a>
+              <button class="btn btn-secondary" onclick="tryEmbedPpt()">🌐 Try online preview</button>
+            </div>
+            <div class="ppt-tip">
+              <p><strong>💡 Note:</strong> This file was uploaded as a PowerPoint. New uploads are automatically converted to PDF for inline preview. You can still download and view this file, and the AI tutor can help you study the subject.</p>
+            </div>
+            <div id="pptEmbedWrap" style="display:none;width:100%;max-width:760px;aspect-ratio:16/9">
+              <iframe id="pptEmbed" style="width:100%;height:100%;border:1px solid var(--border);border-radius:8px" allowfullscreen></iframe>
+            </div>
+          </div>`
+
+        // Auto-greet with context
+        setTimeout(() => addMsg('ai',
+          `Hi! I can see you're studying "${noteData.title}"${noteData.courseCode?' ('+noteData.courseCode+')':''}.\n\nWhile I can't read the slides directly, I can help you understand the subject, answer questions, create summaries, and generate practice questions. What would you like to explore?`
+        ), 600)
+
+      } else {
+        // PDF: show inline like exam viewer
+        document.getElementById('fileInfo').textContent = `${noteData.title}${noteData.courseCode?' · '+noteData.courseCode:''}`
+        document.getElementById('zoomInBtn').style.display = ''
+        document.getElementById('zoomOutBtn').style.display = ''
+        document.getElementById('zoomResetBtn').style.display = ''
+
+        container.innerHTML = '<iframe id="fileFrame" style="width:100%;height:100%;border:none;display:block"></iframe>'
+        document.getElementById('fileFrame').src = fileUrl(`/api/notes/${noteId}/file`)
+
+        // Auto-read the PDF for AI context
+        readNoteForAI()
+      }
+
+    } catch (e) {
+      document.getElementById('fileInfo').textContent = 'Failed to load'
+      document.getElementById('fileContainer').innerHTML =
+        `<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:1rem;color:var(--ink-muted)">
+          <div style="font-size:2rem">⚠️</div>
+          <p>${esc(e.message)}</p>
+          <a href="/pages/notes.html" class="btn btn-secondary">Back to notes</a>
+        </div>`
+    }
+  }
+
+  function tryEmbedPpt() {
+    const origin = window.location.origin
+    // Microsoft Office Online can only reach publicly accessible URLs, not localhost
+    if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('::1')) {
+      toast('Online preview requires a public URL — not available on localhost. Download the file to view it.', 'error')
+      return
+    }
+    const fileFullUrl = encodeURIComponent(origin + `/api/notes/${noteId}/file?token=${localStorage.getItem('token')||''}`)
+    const wrap = document.getElementById('pptEmbedWrap')
+    const embed = document.getElementById('pptEmbed')
+    embed.src = `https://view.officeapps.live.com/op/embed.aspx?src=${fileFullUrl}`
+    wrap.style.display = 'block'
+    wrap.scrollIntoView({behavior:'smooth'})
+    toast('Loading online preview — if it fails, please download the file instead.')
+  }
+
+  // Auto-read PDF notes for AI context
+  async function readNoteForAI() {
+    const st = document.getElementById('aiStatus')
+    st.className = 'ai-status reading'
+    st.textContent = '⏳ Reading notes...'
+    try {
+      const d = await api.post('/api/ai/chat', {
+        messages: [{ role:'user', content:'Briefly introduce yourself and tell me what topics these notes cover based on what you can read.' }],
+        noteId,
+        language: lang
+      })
+      st.className = 'ai-status ready'
+      st.textContent = '✅ Notes loaded — ask me anything!'
+      addMsg('ai', d.reply)
+      chatHistory.push({ role:'user', content:'Briefly introduce yourself and tell me what topics these notes cover based on what you can read.' })
+      chatHistory.push({ role:'assistant', content: d.reply })
+    } catch(e) {
+      st.className = 'ai-status idle'
+      st.textContent = 'Ask me anything about these notes'
+    }
+  }
+
+  // ── Chat ─────────────────────────────────────────────────
+  function addMsg(role, text) {
+    const c = document.getElementById('chatMsgs')
+    const d = document.createElement('div')
+    d.className = `msg msg-${role}`
+    d.innerHTML = `<div class="bubble">${esc(text).replace(/\n/g,'<br/>')}</div>
+      <div class="msg-time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>`
+    c.appendChild(d); c.scrollTop = c.scrollHeight
+  }
+
+  function showTyping() {
+    const c = document.getElementById('chatMsgs')
+    const d = document.createElement('div')
+    d.id='typing'; d.className='typing'
+    d.innerHTML='<span></span><span></span><span></span>'
+    c.appendChild(d); c.scrollTop = c.scrollHeight
+  }
+  function hideTyping() { document.getElementById('typing')?.remove() }
+
+  async function send() {
+    const inp  = document.getElementById('chatIn')
+    const text = inp.value.trim()
+    if (!text) return
+    inp.value = ''; inp.style.height = 'auto'
+    document.getElementById('sendBtn').disabled = true
+    addMsg('user', text)
+    chatHistory.push({ role:'user', content:text })
+    showTyping()
+    try {
+      const d = await api.post('/api/ai/chat', { messages: chatHistory, noteId, language: lang })
+      hideTyping()
+      addMsg('ai', d.reply)
+      chatHistory.push({ role:'assistant', content: d.reply })
+    } catch(e) {
+      hideTyping()
+      addMsg('ai', 'Sorry, something went wrong: ' + e.message)
+    }
+    document.getElementById('sendBtn').disabled = false
+    document.getElementById('chatIn').focus()
+  }
+
+  function qs(t)    { document.getElementById('chatIn').value = t; send() }
+  function onKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()} }
+  function autoH(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px' }
+  function setLang(btn){ lang=btn.dataset.lang; document.querySelectorAll('.lpill').forEach(b=>b.classList.remove('active')); btn.classList.add('active') }
+
+  // ── Zoom (PDF only) ───────────────────────────────────────
+  function zoomIn()    { zoom=Math.min(zoom+.2,3); applyZ() }
+  function zoomOut()   { zoom=Math.max(zoom-.2,.5); applyZ() }
+  function resetZoom() { zoom=1; applyZ() }
+  function applyZ() {
+    const f = document.getElementById('fileFrame')
+    if (f) { f.style.transform=`scale(${zoom})`; f.style.transformOrigin='top center' }
+  }
+
+  // ── AI toggle ─────────────────────────────────────────────
+  function toggleAI() {
+    aiOpen = !aiOpen
+    document.getElementById('aiSide').classList.toggle('closed', !aiOpen)
+    document.getElementById('aiFab').classList.toggle('show', !aiOpen)
+    document.getElementById('aiToggleBtn').textContent = aiOpen ? '🤖 AI Tutor' : '🤖 Open AI'
+  }
+  function openAI() {
+    aiOpen = true
+    const s = document.getElementById('aiSide')
+    s.classList.remove('closed'); s.classList.add('mobile-open')
+    document.getElementById('aiFab').classList.remove('show')
+    document.getElementById('aiToggleBtn').textContent = '🤖 AI Tutor'
+  }
+</script>
+</body>
+</html>

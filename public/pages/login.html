@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Sign In — UniHub Tanzania</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100vh}
+    body{display:flex;background:var(--surface);color:var(--ink);font-family:'DM Sans',sans-serif}
+
+    /* ── Left decorative panel ── */
+    .lp{width:46%;background:var(--ink);display:flex;flex-direction:column;justify-content:space-between;padding:3rem;position:relative;overflow:hidden}
+    [data-theme="dark"] .lp{background:#0D0B05;border-right:1px solid rgba(245,200,66,.1)}
+    .lp-bg{position:absolute;inset:0;pointer-events:none}
+    .lp-circle{position:absolute;border-radius:50%;border:1px solid rgba(201,150,12,.12)}
+    .lp-c1{width:420px;height:420px;top:-80px;right:-120px}
+    .lp-c2{width:280px;height:280px;bottom:60px;left:-60px;border-color:rgba(201,150,12,.07)}
+    .lp-c3{width:150px;height:150px;top:180px;right:80px;border-color:rgba(201,150,12,.18)}
+    .lp-logo{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;color:var(--gold-pale);position:relative}
+    .lp-logo span{color:var(--gold)}
+    .lp-body{position:relative}
+    .lp-quote{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:#F5F0E8;line-height:1.4;margin-bottom:1.75rem;letter-spacing:-.3px}
+    .lp-quote em{color:var(--gold);font-style:italic}
+    .lp-author{display:flex;align-items:center;gap:.85rem}
+    .lp-av{width:42px;height:42px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.88rem;color:var(--ink);flex-shrink:0}
+    .lp-name{font-size:.88rem;color:#F5D97A;font-weight:500}
+    .lp-role{font-size:.74rem;color:rgba(201,150,12,.5);margin-top:.1rem}
+    .lp-stats{display:flex;gap:2rem;margin-top:2.5rem;padding-top:2rem;border-top:1px solid rgba(201,150,12,.15);position:relative}
+    .lp-stat strong{display:block;font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--gold)}
+    .lp-stat span{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(201,150,12,.5)}
+    .lp-copy{font-size:.72rem;color:rgba(201,150,12,.3);position:relative}
+
+    /* ── Right form panel ── */
+    .rp{flex:1;display:flex;align-items:center;justify-content:center;padding:2.5rem;background:var(--surface)}
+    [data-theme="dark"] .rp{background:#111008}
+    .box{width:100%;max-width:400px}
+    .box-logo{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:900;color:var(--ink);display:block;margin-bottom:2.25rem}
+    .box-logo span{color:var(--gold)}
+    .box h1{font-size:1.75rem;font-weight:700;color:var(--ink);margin-bottom:.3rem;letter-spacing:-.3px}
+    .box-sub{font-size:.88rem;color:var(--ink-muted);margin-bottom:2rem}
+    .fg{margin-bottom:1.1rem}
+    .fg label{display:block;font-size:.82rem;font-weight:500;color:var(--ink);margin-bottom:.4rem}
+    .fg-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem}
+    .forgot{font-size:.78rem;color:var(--gold)}
+    .forgot:hover{text-decoration:underline}
+    .box-foot{text-align:center;font-size:.85rem;color:var(--ink-muted);margin-top:1.5rem}
+    .box-foot a{color:var(--gold);font-weight:500}
+    .divider{display:flex;align-items:center;gap:.75rem;margin:1.5rem 0;color:var(--ink-muted);font-size:.78rem}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+    /* ── Theme btn ── */
+    .theme-btn{position:fixed;top:1rem;right:1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.35rem .6rem;cursor:pointer;font-size:.95rem;color:var(--ink-muted);z-index:100;transition:all .2s}
+    .theme-btn:hover{border-color:var(--gold);color:var(--ink)}
+    [data-theme="dark"] .theme-btn{background:#1C1A12}
+
+    @media(max-width:680px){.lp{display:none}.rp{padding:1.5rem}}
+  </style>
+</head>
+<body>
+<!-- Left panel -->
+<div class="lp">
+  <div class="lp-bg">
+    <div class="lp-circle lp-c1"></div>
+    <div class="lp-circle lp-c2"></div>
+    <div class="lp-circle lp-c3"></div>
+  </div>
+  <div class="lp-logo">Uni<span>Hub</span></div>
+  <div class="lp-body">
+    <div class="lp-quote">"The platform that <em>changed</em> how I study for exams."</div>
+    <div class="lp-author">
+      <div class="lp-av">AM</div>
+      <div><div class="lp-name">Amina Mwangi</div><div class="lp-role">3rd Year, Engineering — UDSM</div></div>
+    </div>
+    <div class="lp-stats">
+      <div class="lp-stat"><strong>12+</strong><span>Universities</span></div>
+      <div class="lp-stat"><strong>5,000+</strong><span>Past papers</span></div>
+      <div class="lp-stat"><strong>Free</strong><span>To get started</span></div>
+    </div>
+  </div>
+  <div class="lp-copy">© 2026 UniHub Tanzania. Built for students.</div>
+</div>
+
+<!-- Right panel -->
+<div class="rp">
+  <div class="box">
+    <a href="/" class="box-logo">Uni<span>Hub</span></a>
+    <h1>Welcome back</h1>
+    <p class="box-sub">Sign in to continue studying smarter</p>
+
+    <div id="errBox" class="alert alert-error hidden" style="margin-bottom:1rem"></div>
+
+    <form id="loginForm">
+      <div class="fg">
+        <label>Email address</label>
+        <input class="input" type="email" id="email" placeholder="you@university.ac.tz" required autocomplete="email"/>
+      </div>
+      <div class="fg">
+        <div class="fg-row">
+          <label>Password</label>
+          <a href="#" class="forgot" id="forgotLink" onclick="showForgot(event)">Forgot password?</a>
+        </div>
+        <div style="position:relative">
+          <input class="input" type="password" id="password" placeholder="••••••••" required autocomplete="current-password" style="padding-right:2.8rem"/>
+          <button type="button" onclick="togglePwd()" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink-muted);font-size:1rem;padding:0;line-height:1" title="Show/hide password">👁</button>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full" id="submitBtn" style="margin-top:.25rem">Sign in →</button>
+    </form>
+
+    <div id="forgotBox" class="hidden" style="margin-top:1rem;padding:.9rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:.84rem;color:var(--ink-muted)">
+      <strong style="color:var(--ink)">Password reset</strong><br/>
+      Email-based password reset is not yet available. Please contact your university administrator or <a href="/pages/register.html" style="color:var(--gold)">create a new account</a>.
+      <button onclick="document.getElementById('forgotBox').classList.add('hidden')" style="display:block;margin-top:.5rem;background:none;border:none;color:var(--gold);cursor:pointer;font-size:.82rem;padding:0">Dismiss</button>
+    </div>
+
+    <p class="box-foot">Don't have an account? <a href="/pages/register.html" onclick="localStorage.removeItem('token');localStorage.removeItem('user')">Create one free</a></p>
+  </div>
+</div>
+
+<button class="theme-btn" id="loginThemeBtn" onclick="toggleDarkMode()" title="Toggle dark mode"></button>
+
+<script src="/js/utils.js"></script>
+<script>
+  const _ltb = document.getElementById('loginThemeBtn')
+  function _syncTheme(){ if(_ltb) _ltb.textContent = localStorage.getItem('theme')==='dark' ? '☀️' : '🌙' }
+  _syncTheme()
+  const _orig = window.updateThemeBtn
+  window.updateThemeBtn = function(){ if(_orig)_orig(); _syncTheme() }
+
+  if (localStorage.getItem('token')) window.location.href = '/pages/dashboard.html'
+
+  function togglePwd() {
+    const p = document.getElementById('password')
+    p.type = p.type === 'password' ? 'text' : 'password'
+  }
+  function showForgot(e) {
+    e.preventDefault()
+    document.getElementById('forgotBox').classList.toggle('hidden')
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', async e => {
+    e.preventDefault()
+    const btn = document.getElementById('submitBtn'), err = document.getElementById('errBox')
+    err.classList.add('hidden'); btn.disabled=true; btn.textContent='Signing in...'
+    try {
+      const d = await api.post('/api/auth/login', {
+        email:    document.getElementById('email').value.trim(),
+        password: document.getElementById('password').value,
+      })
+      localStorage.setItem('token', d.token)
+      localStorage.setItem('user',  JSON.stringify(d.user))
+      window.location.href = '/pages/dashboard.html'
+    } catch (ex) {
+      err.textContent = ex.message; err.classList.remove('hidden')
+      btn.disabled=false; btn.textContent='Sign in →'
+    }
+  })
+</script>
+</body>
+</html>

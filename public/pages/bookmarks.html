@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Bookmarks — UniHub Tanzania</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <style>
+    .tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:2rem}
+    .tab{padding:.6rem 1.25rem;font-size:.875rem;font-weight:500;cursor:pointer;border:none;background:none;color:var(--ink-muted);border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit}
+    .tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+    .tab-panel{display:none} .tab-panel.active{display:block}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(262px,1fr));gap:1rem}
+    .ecard{background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;transition:all .18s}
+    .ecard:hover{border-color:var(--gold);box-shadow:0 4px 16px rgba(201,150,12,.13);transform:translateY(-2px)}
+    .etitle{font-family:'Playfair Display',serif;font-size:.97rem;font-weight:700;margin-bottom:.2rem}
+    .emeta{font-size:.75rem;color:var(--ink-muted);margin-bottom:.75rem}
+    .efoot{display:flex;gap:.5rem;padding-top:.75rem;border-top:1px solid var(--border)}
+    .efoot .btn{flex:1;text-align:center;font-size:.78rem;padding:.45rem}
+    .empty{text-align:center;padding:4rem 2rem;color:var(--ink-muted)}
+  </style>
+</head>
+<body>
+<div id="topbarMount"></div>
+<div class="layout">
+  <div id="sidebarMount"></div>
+  <main class="main">
+    <div class="page-header">
+      <div class="label">Saved</div>
+      <h1 class="page-title">My Bookmarks</h1>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('exams')">📄 Exams <span id="examCount"></span></button>
+      <button class="tab" onclick="showTab('notes')">📝 Notes <span id="noteCount"></span></button>
+    </div>
+
+    <div class="tab-panel active" id="tab-exams">
+      <div class="grid" id="examGrid"><div class="skeleton" style="height:160px;border-radius:8px"></div><div class="skeleton" style="height:160px;border-radius:8px"></div></div>
+    </div>
+    <div class="tab-panel" id="tab-notes">
+      <div class="grid" id="noteGrid"><div class="skeleton" style="height:160px;border-radius:8px"></div></div>
+    </div>
+  </main>
+</div>
+<script src="/js/utils.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    requireAuth(); renderLayout('bookmarks'); initSidebar(); await loadBookmarks()
+  })
+
+  async function loadBookmarks() {
+    try {
+      const d = await api.get('/api/bookmarks')
+      renderExams(d.exams || [])
+      renderNotes(d.notes || [])
+      document.getElementById('examCount').textContent = d.exams?.length ? `(${d.exams.length})` : ''
+      document.getElementById('noteCount').textContent = d.notes?.length ? `(${d.notes.length})` : ''
+    } catch(e) {
+      document.getElementById('examGrid').innerHTML = `<div class="empty"><p style="color:var(--red)">${esc(e.message)}</p></div>`
+    }
+  }
+
+  function renderExams(list) {
+    const g = document.getElementById('examGrid')
+    if (!list.length) { g.innerHTML='<div class="empty"><div style="font-size:2.5rem;margin-bottom:1rem">🔖</div><p>No bookmarked exams yet.</p><a href="/pages/exams.html" class="btn btn-gold" style="margin-top:1rem">Browse exams</a></div>'; return }
+    g.innerHTML = list.map(e => `
+      <div class="ecard">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.6rem">
+          <span class="eyear" style="font-size:.71rem;font-weight:600;background:var(--gold-pale);color:var(--gold);padding:.18rem .6rem;border-radius:20px">${e.year}</span>
+          <span style="font-size:.71rem;color:var(--ink-muted);background:var(--badge-neutral-bg);padding:.18rem .6rem;border-radius:20px">${esc((UNIS[e.university]||e.university||'').toUpperCase())}</span>
+        </div>
+        <div class="etitle">${esc(e.courseName)}</div>
+        <div class="emeta">${[e.courseCode,e.faculty].filter(Boolean).map(esc).join(' · ')}</div>
+        <div class="efoot">
+          <a href="/pages/exam-viewer.html?id=${e.id}" class="btn btn-primary">📖 View</a>
+          <button onclick="unbookmark('exam','${e.id}',this)" class="btn btn-secondary">🗑 Remove</button>
+        </div>
+      </div>`).join('')
+  }
+
+  function renderNotes(list) {
+    const g = document.getElementById('noteGrid')
+    if (!list.length) { g.innerHTML='<div class="empty"><div style="font-size:2.5rem;margin-bottom:1rem">🔖</div><p>No bookmarked notes yet.</p><a href="/pages/notes.html" class="btn btn-gold" style="margin-top:1rem">Browse notes</a></div>'; return }
+    g.innerHTML = list.map(n => `
+      <div class="ecard">
+        <div style="margin-bottom:.55rem"><span class="badge badge-gold">${esc((UNIS[n.university]||n.university||'').toUpperCase())}</span></div>
+        <div class="etitle">${esc(n.title)}</div>
+        <div class="emeta">${[n.courseCode,n.faculty].filter(Boolean).map(esc).join(' · ')}</div>
+        <div class="efoot">
+          <a href="/pages/note-viewer.html?id=${n.id}" class="btn btn-primary">👁 View</a>
+          <button onclick="unbookmark('note','${n.id}',this)" class="btn btn-secondary">🗑 Remove</button>
+        </div>
+      </div>`).join('')
+  }
+
+  async function unbookmark(type, id, btn) {
+    try {
+      await api.post('/api/bookmarks', { resourceType: type, resourceId: id })
+      toast('Bookmark removed')
+      await loadBookmarks()
+    } catch(e) { toast(e.message,'error') }
+  }
+
+  function showTab(name) {
+    document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['exams','notes'][i]===name))
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'))
+    document.getElementById(`tab-${name}`).classList.add('active')
+  }
+</script>
+</body>
+</html>
