@@ -76,6 +76,12 @@ router.patch('/users/:id', authenticate, adminOnly, async (req, res) => {
 router.delete('/users/:id', authenticate, adminOnly, async (req, res) => {
   try {
     if (req.params.id === req.user.id) return res.status(400).json({ message: 'Cannot delete your own account.' })
+      
+    if(user.is_protected){
+    return res.status(403).json({
+        message:"This user cannot be deleted"
+    });
+}
     await User.destroy({ where: { id: req.params.id } })
     res.json({ message: 'User deleted.' })
   } catch (err) { res.status(500).json({ message: err.message }) }
