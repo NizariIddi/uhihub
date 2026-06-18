@@ -163,8 +163,6 @@ User.hasMany(Report,        { foreignKey: 'userId' })
 Report.belongsTo(User,      { foreignKey: 'userId', as: 'reporter' })
 Report.belongsTo(User,      { foreignKey: 'resolvedById', as: 'resolvedBy' })
 
-export default db
-
 // ── Notes Marketplace ─────────────────────────────────────────
 export const NoteRequest = db.define('NoteRequest', {
   id:          { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -258,3 +256,5 @@ Programme.hasMany(User,   { foreignKey: 'programmeId', as: 'students' })
 // Associations
 User.hasMany(NoteRequest,       { foreignKey: 'userId' })
 NoteRequest.belongsTo(User,     { foreignKey: 'userId', as: 'requester' })
+
+export default db

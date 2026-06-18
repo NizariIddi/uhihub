@@ -30,7 +30,10 @@ const FRONTEND  = path.resolve(__dirname, '..', '..','public')
 const app  = express()
 const PORT = process.env.PORT || 3232;
 
-app.use(cors({ origin: '*' }))
+// CORS origin: set ALLOWED_ORIGIN in .env for production (e.g. https://unihub.tz)
+// Falls back to '*' only when not configured, so local dev still works out of the box
+const corsOrigin = process.env.ALLOWED_ORIGIN || '*'
+app.use(cors({ origin: corsOrigin }))
 app.use(express.json({ limit: '5mb' }))
 app.use(express.urlencoded({ extended: true, limit: '5mb' }))
 app.use((req, res, next) => { res.setHeader('Cross-Origin-Resource-Policy','cross-origin'); next() })
@@ -60,15 +63,19 @@ app.use('/api/marketplace',   marketplaceRoutes)
 app.use('/api/download',      downloadRoutes)
 app.use('/api/hierarchy',     hierarchyRoutes)
 
+// 404 for unmatched API routes
 app.use('/api', (req, res) => res.status(404).json({ message: `No route: ${req.method} ${req.originalUrl}` }))
-app.use('/api', (err, req, res, next) => {
-  console.error('[API ERROR]', err.message)
-  res.status(err.status||500).json({ message: err.message||'Server error.' })
-})
 
 app.use('/uploads', express.static(UPLOADS_DIR))
 app.use(express.static(FRONTEND))
 app.get('*', (req, res) => res.sendFile(path.join(FRONTEND, 'index.html')))
+
+// Global error handler — must be registered last, after all routes/middleware,
+// so Express recognizes it by its 4-arg signature and routes errors to it
+app.use((err, req, res, next) => {
+  console.error('[API ERROR]', err.message)
+  res.status(err.status || 500).json({ message: err.message || 'Server error.' })
+})
 
 // Sync DB then start — alter:true adds new columns/tables without dropping existing data
 async function start() {

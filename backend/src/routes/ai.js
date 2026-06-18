@@ -7,6 +7,16 @@ import { UPLOADS_DIR } from '../middleware/upload.js'
 
 const router   = Router()
 const pdfCache = new Map()
+const PDF_CACHE_MAX = 200 // cap entries to avoid unbounded memory growth
+
+function cachePdfText(fileUrl, text) {
+  // Evict oldest entry (Map preserves insertion order) once over the cap
+  if (pdfCache.size >= PDF_CACHE_MAX) {
+    const oldestKey = pdfCache.keys().next().value
+    pdfCache.delete(oldestKey)
+  }
+  pdfCache.set(fileUrl, text)
+}
 
 // ── Simple in-memory rate limiter: max 30 AI requests per user per minute ──
 const aiRateMap = new Map()
@@ -32,7 +42,13 @@ setInterval(() => {
 }, 5 * 60 * 1000)
 
 async function readPdf(fileUrl) {
-  if (pdfCache.has(fileUrl)) return pdfCache.get(fileUrl)
+  if (pdfCache.has(fileUrl)) {
+    // Touch entry: delete + re-set moves it to the end (most-recently-used)
+    const cached = pdfCache.get(fileUrl)
+    pdfCache.delete(fileUrl)
+    pdfCache.set(fileUrl, cached)
+    return cached
+  }
   try {
     const folder   = fileUrl.includes('notes') ? 'notes' : 'exams'
     const filePath = path.join(UPLOADS_DIR, folder, path.basename(fileUrl))
@@ -48,7 +64,7 @@ async function readPdf(fileUrl) {
     }
     const data = await pdfParse(fs.readFileSync(filePath))
     const text = data.text?.trim()
-    if (text && text.length > 30) { pdfCache.set(fileUrl, text); return text }
+    if (text && text.length > 30) { cachePdfText(fileUrl, text); return text }
     return null
   } catch (e) { console.error('[PDF]', e.message); return null }
 }

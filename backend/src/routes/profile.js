@@ -5,6 +5,22 @@ import { authenticate } from '../middleware/auth.js'
 
 const router = Router()
 
+// GET /api/profile/me — own profile (must be registered before /:id,
+// otherwise Express would match "me" as an :id and 404)
+router.get('/me', authenticate, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, { attributes: { exclude: ['password'] } })
+    if (!user) return res.status(404).json({ message: 'User not found.' })
+
+    const [exams, notes, reviews] = await Promise.all([
+      Exam.findAll({ where: { uploadedById: user.id }, order: [['created_at','DESC']], limit: 10 }),
+      Note.findAll({ where: { uploadedById: user.id }, order: [['created_at','DESC']], limit: 10 }),
+      Review.findAll({ where: { userId: user.id }, order: [['created_at','DESC']], limit: 5 }),
+    ])
+    res.json({ user, exams, notes, reviews })
+  } catch (err) { res.status(500).json({ message: err.message }) }
+})
+
 // GET /api/profile/:id — public profile
 router.get('/:id', authenticate, async (req, res) => {
   try {

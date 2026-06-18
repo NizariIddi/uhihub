@@ -68,7 +68,7 @@ router.post('/', authenticate, (req, res, next) => {
           userId: u.id, type: 'NEW_NOTE',
           title: `New notes: ${note.title}`,
           body:  `${(university||'').toUpperCase()}${courseCode?' · '+courseCode:''}`,
-          link:  `/pages/notes.html`,
+          link:  `/pages/note-viewer.html?id=${note.id}`,
         }))
         if (notifs.length) Notification.bulkCreate(notifs).catch(console.error)
       }).catch(console.error)

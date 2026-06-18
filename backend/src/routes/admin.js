@@ -1,10 +1,11 @@
 import { Router } from 'express'
 import path from 'path'
 import fs from 'fs'
-import { Op } from 'sequelize'
+import { Op, QueryTypes } from 'sequelize'
 import { User, Exam, Note, Internship, Activity, AiUsage } from '../models/index.js'
 import { authenticate } from '../middleware/auth.js'
 import { uploadPdf, UPLOADS_DIR } from '../middleware/upload.js'
+import db from '../config/db.js'
 
 const router = Router()
 
@@ -173,14 +174,9 @@ router.delete('/internships/:id', authenticate, adminOnly, async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }) }
 })
 
-export default router
-
 // ── Analytics ─────────────────────────────────────────────────
 router.get('/analytics', authenticate, adminOnly, async (req, res) => {
   try {
-    const db = (await import('../config/db.js')).default
-    const { QueryTypes } = await import('sequelize')
-
     // Signups per day (last 30 days)
     const signups = await db.query(`
       SELECT DATE(created_at) as date, COUNT(*) as count
@@ -215,7 +211,6 @@ router.get('/analytics', authenticate, adminOnly, async (req, res) => {
 // ── Featured toggle ───────────────────────────────────────────
 router.patch('/exams/:id/featured', authenticate, adminOnly, async (req, res) => {
   try {
-    const { Exam } = await import('../models/index.js')
     const exam = await Exam.findByPk(req.params.id)
     if (!exam) return res.status(404).json({ message: 'Not found.' })
     await exam.update({ isFeatured: !exam.isFeatured })
@@ -225,10 +220,11 @@ router.patch('/exams/:id/featured', authenticate, adminOnly, async (req, res) =>
 
 router.patch('/notes/:id/featured', authenticate, adminOnly, async (req, res) => {
   try {
-    const { Note } = await import('../models/index.js')
     const note = await Note.findByPk(req.params.id)
     if (!note) return res.status(404).json({ message: 'Not found.' })
     await note.update({ isFeatured: !note.isFeatured })
     res.json({ isFeatured: note.isFeatured })
   } catch (err) { res.status(500).json({ message: err.message }) }
 })
+
+export default router
